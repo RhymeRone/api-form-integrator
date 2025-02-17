@@ -1,0 +1,24 @@
+# Bağımlılıklar
+node_modules/
+
+# Derlenmiş dosyalar
+dist/
+
+# Test ve kapsam raporları
+coverage/
+*.log
+
+# IDE ve editör ayarları
+.DS_Store
+.idea/
+.vscode/
+
+# Ortam değişkenleri
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+
+# Geçici dosyalar
+*.tmp

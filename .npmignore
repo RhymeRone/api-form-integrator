@@ -1,0 +1,23 @@
+# Dizinler
+node_modules/
+tests/
+coverage/
+dist/
+src/
+docs/
+
+# Dosyalar
+.babelrc
+.gitignore
+.npmrc
+.eslintrc
+.prettierrc
+jest.config.js
+*.log
+*.tmp
+*.env
+
+# Diğer
+.DS_Store
+.idea/
+.vscode/
