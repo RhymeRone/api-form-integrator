@@ -59,104 +59,38 @@ Paketi doğrudan tarayıcınızda kullanmak için:
 
 ## 🚀 Hızlı Başlangıç
 
-### 1. HTML Form Yapısı
-  ```html
-  <form id="loginForm">
-    <div class="form-group">
-      <label for="email">Email</label>
-      <input 
-        type="email" 
-        name="email" 
-        id="email"
-        class="form-control" 
-        placeholder="Email adresiniz"
-      />
-      <div class="invalid-feedback"></div>
-    </div>
-    
-    <div class="form-group">
-      <label for="password">Şifre</label>
-      <input 
-        type="password" 
-        name="password" 
-        id="password"
-        class="form-control" 
-        placeholder="Şifreniz"
-      />
-      <div class="invalid-feedback"></div>
-    </div>
+### 1. Paketi yükleyin:
+   ```bash
+   npm install api-form-integrator
+   ```
 
-    <button type="submit" class="btn btn-primary">
-      Giriş Yap
-    </button>
-  </form>
-  ```
+### 2. Konfigürasyon dosyasını oluşturun:
+  ```bash
+   npm run create-integrator
+   ```
+### 3. `integrator.js` dosyasını projenize import edin:
 
-### 2. JavaScript Konfigürasyonu
   ```javascript
-  // config.js
-  import { FormManager, APP_CONFIG } from 'api-form-integrator';
+   import ApiFormIntegrator from 'api-form-integrator';
+   import integratorConfig from './integrator';
 
-  // API Temel Ayarları
-  APP_CONFIG.API = {
-    baseURL: 'https://api.example.com',
-    timeout: 30000,
-    headers: {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json'
-    }
-  };
+   // SweetAlert varsayılan ayarları
+   Swal.defaultOptions = APP_CONFIG.UI.notifications;
 
-  // UI Ayarları
-  APP_CONFIG.UI = {
-    notifications: {
-      position: 'top-end',
-      timer: 3000,
-      showConfirmButton: false
-    },
-    validation: {
-      showErrors: true,
-      errorClass: 'is-invalid',
-      successClass: 'is-valid'
-    }
-  };
+   const integrator = new ApiFormIntegrator(integratorConfig);
+   integrator.initialize();
+   ```
 
-  // Form Tanımlaması
-  APP_CONFIG.FORMS.LOGIN = {
-    selector: '#loginForm',
-    endpoint: '/auth/login',
-    method: 'POST',
-    fields: {
-      email: {
-        rules: ['required', 'email']
-      },
-      password: {
-        rules: ['required', 'min:6']
-      }
-    },
-    actions: {
-      success: {
-        saveToken: true,
-        redirect: '/dashboard',
-        message: 'Giriş başarılı!'
-      },
-      error: {
-        401: {
-          message: 'Email veya şifre hatalı!'
-        },
-        422: {
-          message: 'Lütfen tüm alanları doldurun',
-          showValidation: true
-        }
-      }
-    }
-  };
+### Açıklamalar
 
-  // FormManager'ı Başlat
-  document.addEventListener('DOMContentLoaded', () => {
-    FormManager.initialize();
-  });
-  ```
+1. **`npm run create-integrator`**  
+   Bu komut, projeniz için temel bir konfigürasyon dosyası (`integrator.js`) oluşturur. Bu dosya, formlarınızın, API ayarlarınızın ve UI ayarlarınızın yapılandırılmasını sağlar.
+
+2. **SweetAlert Ayarları**  
+   `Swal.defaultOptions` ile SweetAlert2'nin varsayılan ayarlarını özelleştirebilirsiniz. Bu adım **isteğe bağlıdır** ve kullanıcılar kendi bildirim ayarlarını yapılandırabilir.
+
+3. **`integrator.initialize()`**  
+   Bu metod, `integrator.js` dosyasında tanımlanan tüm formları otomatik olarak başlatır ve API entegrasyonunu sağlar.
 
 ## 📚 Detaylı Kullanım
 
