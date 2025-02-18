@@ -1,24 +1,39 @@
 {
   "name": "api-form-integrator",
-  "version": "1.0.10",
+  "version": "1.1.0",
   "description": "API ile entegre çalışan formları yöneten bir paket",
-  "main": "dist/index.js",
+  "type": "module",
+  "main": "./dist/cjs/index.cjs",
+  "module": "./dist/esm/index.js",
+  "exports": {
+    ".": {
+      "import": "./dist/esm/index.js",
+      "require": "./dist/cjs/index.cjs",
+      "browser": "./dist/integrator.cdn.js"
+    },
+    "./bin/create-integrator": "./dist/cjs/bin/create-integrator.cjs"
+  },
   "scripts": {
     "test": "jest",
-    "build": "webpack --mode production",
+    "build:esm": "babel src -d dist/esm --extensions .js",
+    "build:cjs": "babel src -d dist/cjs --extensions .js --config-file ./babel-cjs.config.js",
+    "build:cdn": "webpack --mode production --config webpack.cdn.config.js",
+    "build:bin": "cp bin/create-integrator.js dist/cjs/bin/create-integrator.cjs",
+    "build": "npm run build:esm && npm run build:cjs && npm run build:cdn && npm run build:bin",
     "prepublish": "npm run build",
-    "create-integrator": "node ./bin/create-integrator.js"
+    "create-integrator": "node ./dist/cjs/bin/create-integrator.cjs"
   },
   "bin": {
-    "create-integrator": "./bin/create-integrator.js"
+    "create-integrator": "./dist/cjs/bin/create-integrator.cjs"
   },
-  "type": "commonjs",
   "keywords": [
     "api",
     "form",
     "integration",
     "axios",
-    "service"
+    "service",
+    "cdn",
+    "laravel"
   ],
   "author": "İsmail Hallaç",
   "license": "MIT",
@@ -32,6 +47,7 @@
     "@babel/plugin-transform-modules-commonjs": "^7.26.3",
     "@babel/preset-env": "^7.26.9",
     "babel-loader": "^9.2.1",
+    "babel-plugin-add-module-exports": "^1.0.4",
     "jest": "^29.7.0",
     "jest-environment-jsdom": "^29.7.0",
     "webpack": "^5.98.0",
@@ -42,9 +58,9 @@
       [
         "@babel/preset-env",
         {
-          "modules": "auto",
+          "modules": "commonjs",
           "targets": {
-            "node": "current"
+            "node": "14"
           }
         }
       ]
@@ -65,5 +81,13 @@
     "setupFiles": [
       "<rootDir>/tests/setup.js"
     ]
-  }
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "files": [
+    "dist",
+    "bin",
+    "README.md"
+  ]
 }

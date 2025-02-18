@@ -1,17 +1,22 @@
 #!/usr/bin/env node
-const fs = require('fs');
-const path = require('path');
+import { fileURLToPath } from 'url';
+import path from 'path';
+import fs from 'fs';
+
+// __dirname polyfill for ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Proje kök dizininin alınması
 const rootPath = process.cwd();
 
-// Hedef klasör ve dosya yolu: resources/js/config/integrator.js
+// Hedef dosya yolu
 const destinationDir = path.join(rootPath, 'resources', 'js', 'config');
-const destinationFile = path.join(destinationDir, 'integrator.js');
+const destinationFile = path.join(destinationDir, 'integrator.config.js');
 
 // Temel konfigürasyon örneği (default.config.js'ten alındı)
 const configTemplate = `// API Form Integrator Konfigürasyonu
-const integratorConfig = {
+export const integratorConfig = {
   FORMS: {
     LOGIN: {
       selector: '#loginForm', // Formun DOM'daki seçicisi (ID, class, vs.)
@@ -53,6 +58,7 @@ const integratorConfig = {
     headers: {
       'Content-Type': 'application/json', // Varsayılan header'lar
       'Accept': 'application/json',
+      'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content
     },
     timeout: 30000, // İstek zaman aşımı (ms cinsinden)
     errors: {
@@ -95,31 +101,12 @@ const integratorConfig = {
     },
   },
 };
-const getFormConfig = function(formKey) {
-  return integratorConfig.FORMS[formKey];
-};
-const getApiConfig = function() {
-  return integratorConfig.API;
-};
-const getUiConfig = function() {
-  return integratorConfig.UI;
-};
-const getValidationMessage = function(rule) {
-  return integratorConfig.UI.validation.messages[rule];
-};
-const getApiErrorConfig = function(status) {
-  return integratorConfig.API.errors[status];
-};
-
-// Dışa aktarım (CommonJS)
-module.exports = {
-  integratorConfig,
-  getFormConfig,
-  getApiConfig,
-  getUiConfig,
-  getValidationMessage,
-  getApiErrorConfig
-};
+// Helper functions
+export const getFormConfig = (formKey) => integratorConfig.FORMS[formKey];
+export const getApiConfig = () => integratorConfig.API;
+export const getUiConfig = () => integratorConfig.UI;
+export const getValidationMessage = (rule) => integratorConfig.UI.validation.messages[rule];
+export const getApiErrorConfig = (status) => integratorConfig.API.errors[status];
 
 /*
 ### Açıklamalar ve Öneriler
@@ -149,15 +136,21 @@ module.exports = {
 `;
 
 try {
-  // Hedef klasör mevcut değilse oluştur
-  if (!fs.existsSync(destinationDir)) {
-    fs.mkdirSync(destinationDir, { recursive: true });
-  }
-
-  // Konfigürasyon dosyasını oluştur veya üzerine yaz
-  fs.writeFileSync(destinationFile, configTemplate);
-  console.log(`✅ integrator.js dosyası başarıyla oluşturuldu: ${destinationFile}`);
-} catch (error) {
-  console.error('❌ integrator.js dosyası oluşturulurken bir hata oluştu:', error.message);
+  fs.accessSync(path.dirname(destinationDir), fs.constants.W_OK);
+  try {
+    // Hedef klasör mevcut değilse oluştur
+    if (!fs.existsSync(destinationDir)) {
+      fs.mkdirSync(destinationDir, { recursive: true });
+    }
+  
+    // Konfigürasyon dosyasını oluştur veya üzerine yaz
+    fs.writeFileSync(destinationFile, configTemplate);
+    console.log(`✅ integrator.config.js dosyası başarıyla oluşturuldu: ${destinationFile}`);
+  } catch (error) {
+    console.error('❌ integrator.config.js dosyası oluşturulurken bir hata oluştu:', error.message);
+    process.exit(1);
+  }  
+} catch {
+  console.error('❌ Yazma izni yok:', destinationDir);
   process.exit(1);
 }

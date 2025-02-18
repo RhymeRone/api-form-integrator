@@ -68,12 +68,12 @@ Paketi doğrudan tarayıcınızda kullanmak için:
   ```bash
    npx create-integrator
    ```
-### 3. `integrator.js` dosyasını projenize import edin:
+### 3. `integrator.config.js` dosyasını projenize import edin:
 
   ```javascript
    import ApiFormIntegrator from 'api-form-integrator';
    // Örneğin, resources/js/app.js içinden:
-   import integratorConfig from './config/integrator';
+   import integratorConfig from './config/integrator.config';
 
    // SweetAlert varsayılan ayarları (opsiyonel)
    Swal.defaultOptions = integratorConfig.UI.notifications;
@@ -84,17 +84,17 @@ Paketi doğrudan tarayıcınızda kullanmak için:
 
 ### Açıklamalar
 
-1. **`npm run create-integrator`**  
-   Bu komut, projeniz için temel bir konfigürasyon dosyası (`integrator.js`) oluşturur. Bu dosya, formlarınızın, API ayarlarınızın ve UI ayarlarınızın yapılandırılmasını sağlar.
+1. **`npx create-integrator`**  
+   Bu komut, projeniz için temel bir konfigürasyon dosyası (`integrator.config.js`) oluşturur. Bu dosya, formlarınızın, API ayarlarınızın ve UI ayarlarınızın yapılandırılmasını sağlar.
 
 2. **SweetAlert Ayarları**  
    `Swal.defaultOptions` ile SweetAlert2'nin varsayılan ayarlarını özelleştirebilirsiniz. Bu adım **isteğe bağlıdır** ve kullanıcılar kendi bildirim ayarlarını yapılandırabilir.
 
 3. **`integrator.initialize()`**  
-   Bu metod, `integrator.js` dosyasında tanımlanan tüm formları otomatik olarak başlatır ve API entegrasyonunu sağlar.
+   Bu metod, `integrator.config.js` dosyasında tanımlanan tüm formları otomatik olarak başlatır ve API entegrasyonunu sağlar.
 
 4. **`import integratorConfig from './config/integrator';`**  
-    Bu ifade, entegratör konfigürasyon dosyanızın varsayılan olarak `resources/js/config/integrator.js` konumunda bulunduğunu ve `resources/js/app.js` içinden bu şekilde erişilebileceğini belirtir. Eğer entegratör dosyanızı farklı bir dizine taşıdıysanız, lütfen import yolunu dosyanızın bulunduğu yeni konuma göre güncelleyin.
+    Bu ifade, entegratör konfigürasyon dosyanızın varsayılan olarak `resources/js/config/integrator.config.js` konumunda bulunduğunu ve `resources/js/app.js` içinden bu şekilde erişilebileceğini belirtir. Eğer entegratör dosyanızı farklı bir dizine taşıdıysanız, lütfen import yolunu dosyanızın bulunduğu yeni konuma göre güncelleyin.
 
 ## 📚 Detaylı Kullanım
 

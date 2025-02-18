@@ -1,39 +1,39 @@
 export const APP_CONFIG = {
     FORMS: {
-        LOGIN: {
-            selector: '#loginForm', // form seçicisi
-            endpoint: '/login', // endpoint
-            method: 'POST', // method tipi
-            preventRedirect: true, // varsayılan olarak true
-            fields: {
-                email: {
-                    rules: ['required', 'email']
-                },
-                password: {
-                    rules: ['required', 'min:6']
-                }
-            },
-            actions: {
-                success: {
-                    saveToken: true,
-                    redirect: '/dashboard',
-                    message: 'Giriş başarılı!'
-                },
-                error: {
-                    400: {
-                        message: 'Zaten giriş yapılmış',
-                        redirect: '/dashboard'
-                    },
-                    401: {
-                        message: 'Email veya şifre hatalı!',
-                    },
-                    422: {
-                        message: 'Lütfen tüm alanları doldurun',
-                        showValidation: true
-                    }
-                }
-            }
-        }
+        // LOGIN: {
+        //     selector: '#loginForm', // form seçicisi
+        //     endpoint: '/login', // endpoint
+        //     method: 'POST', // method tipi
+        //     preventRedirect: true, // varsayılan olarak true
+        //     fields: {
+        //         email: {
+        //             rules: ['required', 'email']
+        //         },
+        //         password: {
+        //             rules: ['required', 'min:6']
+        //         }
+        //     },
+        //     actions: {
+        //         success: {
+        //             saveToken: true,
+        //             redirect: '/dashboard',
+        //             message: 'Giriş başarılı!'
+        //         },
+        //         error: {
+        //             400: {
+        //                 message: 'Zaten giriş yapılmış',
+        //                 redirect: '/dashboard'
+        //             },
+        //             401: {
+        //                 message: 'Email veya şifre hatalı!',
+        //             },
+        //             422: {
+        //                 message: 'Lütfen tüm alanları doldurun',
+        //                 showValidation: true
+        //             }
+        //         }
+        //     }
+        // }
     },
 
     API: {
