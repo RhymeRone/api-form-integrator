@@ -16,6 +16,9 @@ module.exports = {
         exclude: /node_modules/, // node_modules klasörünü hariç tut
         use: {
           loader: 'babel-loader', // Babel kullan
+          options: {
+            presets: ['@babel/preset-env']
+          }
         },
       },
     ],

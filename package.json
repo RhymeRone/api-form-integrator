@@ -7,11 +7,12 @@
     "test": "jest",
     "build": "webpack --mode production",
     "prepublish": "npm run build",
-    "create-integrator": "node bin/create-integrator.js"
+    "create-integrator": "node ./bin/create-integrator.js"
   },
   "bin": {
-    "create-integrator": "bin/create-integrator.js"
+    "create-integrator": "./bin/create-integrator.js"
   },
+  "type": "commonjs",
   "keywords": [
     "api",
     "form",
@@ -28,6 +29,7 @@
   "devDependencies": {
     "@babel/cli": "^7.26.4",
     "@babel/core": "^7.26.9",
+    "@babel/plugin-transform-modules-commonjs": "^7.26.3",
     "@babel/preset-env": "^7.26.9",
     "babel-loader": "^9.2.1",
     "jest": "^29.7.0",
@@ -37,7 +39,13 @@
   },
   "babel": {
     "presets": [
-      "@babel/preset-env"
+      ["@babel/preset-env", { 
+        "modules": "auto", 
+      "targets": { "node": "current" } 
+    }]
+  ],
+    "plugins": [
+      "@babel/plugin-transform-modules-commonjs"
     ]
   },
   "jest": {

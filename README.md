@@ -66,7 +66,7 @@ Paketi doğrudan tarayıcınızda kullanmak için:
 
 ### 2. Konfigürasyon dosyasını oluşturun:
   ```bash
-   npm run create-integrator
+   npx create-integrator
    ```
 ### 3. `integrator.js` dosyasını projenize import edin:
 

@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 const fs = require('fs');
 const path = require('path');
 
@@ -87,15 +88,31 @@ const integratorConfig = {
     },
   },
 };
+const getFormConfig = function(formKey) {
+  return integratorConfig.FORMS[formKey];
+};
+const getApiConfig = function() {
+  return integratorConfig.API;
+};
+const getUiConfig = function() {
+  return integratorConfig.UI;
+};
+const getValidationMessage = function(rule) {
+  return integratorConfig.UI.validation.messages[rule];
+};
+const getApiErrorConfig = function(status) {
+  return integratorConfig.API.errors[status];
+};
 
-// Helper fonksiyonlar
-export const getFormConfig = (formKey) => config.FORMS[formKey]; // Form konfigürasyonunu getir
-export const getApiConfig = () => config.API; // API konfigürasyonunu getir
-export const getUiConfig = () => config.UI; // UI konfigürasyonunu getir
-export const getValidationMessage = (rule) => config.UI.validation.messages[rule]; // Validasyon mesajını getir
-export const getApiErrorConfig = (status) => config.API.errors[status]; // API hata konfigürasyonunu getir
-
-export default integratorConfig;
+// Dışa aktarım (CommonJS)
+module.exports = {
+  integratorConfig,
+  getFormConfig,
+  getApiConfig,
+  getUiConfig,
+  getValidationMessage,
+  getApiErrorConfig
+};
 
 /*
 ### Açıklamalar ve Öneriler
