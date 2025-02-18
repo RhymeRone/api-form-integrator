@@ -16,14 +16,13 @@
   "scripts": {
     "test": "jest",
     "build:esm": "babel src -d dist/esm --extensions .js",
-    "build:cjs": "babel src -d dist/cjs --extensions .js --config-file ./babel-cjs.config.cjs",
+    "build:cjs": "babel src bin -d dist/cjs --extensions .js --config-file ./babel-cjs.config.cjs",
     "build:cdn": "webpack --mode production --config webpack.config.cjs",
-    "build:bin": "node scripts/copy-bin.cjs",
-    "build": "npm run build:esm && npm run build:cjs && npm run build:cdn && npm run build:bin",
+    "build": "npm run build:esm && npm run build:cjs && npm run build:cdn",
     "prepublish": "npm run build",
     "create-integrator": "node ./dist/cjs/bin/create-integrator.cjs"
   },
-  "bin": {
+"bin": {
     "create-integrator": "./dist/cjs/bin/create-integrator.cjs"
   },
   "keywords": [

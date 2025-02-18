@@ -6,7 +6,9 @@ module.exports = {
     }]
   ],
   plugins: [
-    "@babel/plugin-transform-modules-commonjs",
+    ["@babel/plugin-transform-modules-commonjs", {
+      allowTopLevelThis: true // Global scope için gerekli
+    }],
     "babel-plugin-add-module-exports"
   ]
 };

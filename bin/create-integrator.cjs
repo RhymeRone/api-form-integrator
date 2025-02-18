@@ -1,11 +1,6 @@
 #!/usr/bin/env node
-import { fileURLToPath } from 'url';
-import path from 'path';
-import fs from 'fs';
-
-// __dirname polyfill for ES modules
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const path = require('path');
+const fs = require('fs');
 
 // Proje kök dizininin alınması
 const rootPath = process.cwd();
