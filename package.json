@@ -7,8 +7,10 @@
     "test": "jest",
     "build": "webpack --mode production",
     "prepublish": "npm run build",
-    "create-integrator": "node scripts/create-integrator.js",
-    "postinstall": "node scripts/postinstall.js"
+    "create-integrator": "node bin/create-integrator.js"
+  },
+  "bin": {
+    "create-integrator": "bin/create-integrator.js"
   },
   "keywords": [
     "api",
