@@ -72,7 +72,8 @@ Paketi doğrudan tarayıcınızda kullanmak için:
 
   ```javascript
    import ApiFormIntegrator from 'api-form-integrator';
-   import integratorConfig from './integrator';
+   // Örneğin, resources/js/app.js içinden:
+   import integratorConfig from './config/integrator';
 
    // SweetAlert varsayılan ayarları
    Swal.defaultOptions = APP_CONFIG.UI.notifications;
@@ -91,6 +92,9 @@ Paketi doğrudan tarayıcınızda kullanmak için:
 
 3. **`integrator.initialize()`**  
    Bu metod, `integrator.js` dosyasında tanımlanan tüm formları otomatik olarak başlatır ve API entegrasyonunu sağlar.
+
+4. **`import integratorConfig from './config/integrator';`**  
+    Bu ifade, entegratör konfigürasyon dosyanızın varsayılan olarak `resources/js/config/integrator.js` konumunda bulunduğunu ve `resources/js/app.js` içinden bu şekilde erişilebileceğini belirtir. Eğer entegratör dosyanızı farklı bir dizine taşıdıysanız, lütfen import yolunu dosyanızın bulunduğu yeni konuma göre güncelleyin.
 
 ## 📚 Detaylı Kullanım
 
