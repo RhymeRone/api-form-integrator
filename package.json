@@ -6,7 +6,8 @@
   "scripts": {
     "test": "jest",
     "build": "webpack --mode production",
-    "prepublish": "npm run build"
+    "prepublish": "npm run build",
+    "create-integrator": "node create-integrator.js"
   },
   "keywords": [
     "api",
