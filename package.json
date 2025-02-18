@@ -1,6 +1,6 @@
 {
   "name": "api-form-integrator",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "API ile entegre çalışan formları yöneten bir paket",
   "type": "module",
   "main": "./dist/cjs/index.cjs",
@@ -16,9 +16,9 @@
   "scripts": {
     "test": "jest",
     "build:esm": "babel src -d dist/esm --extensions .js",
-    "build:cjs": "babel src -d dist/cjs --extensions .js --config-file ./babel-cjs.config.js",
-    "build:cdn": "webpack --mode production --config webpack.cdn.config.js",
-    "build:bin": "cp bin/create-integrator.js dist/cjs/bin/create-integrator.cjs",
+    "build:cjs": "babel src -d dist/cjs --extensions .js --config-file ./babel-cjs.config.cjs",
+    "build:cdn": "webpack --mode production --config webpack.config.cjs",
+    "build:bin": "node scripts/copy-bin.cjs",
     "build": "npm run build:esm && npm run build:cjs && npm run build:cdn && npm run build:bin",
     "prepublish": "npm run build",
     "create-integrator": "node ./dist/cjs/bin/create-integrator.cjs"
@@ -48,6 +48,7 @@
     "@babel/preset-env": "^7.26.9",
     "babel-loader": "^9.2.1",
     "babel-plugin-add-module-exports": "^1.0.4",
+    "fs-extra": "^11.3.0",
     "jest": "^29.7.0",
     "jest-environment-jsdom": "^29.7.0",
     "webpack": "^5.98.0",
@@ -66,7 +67,8 @@
       ]
     ],
     "plugins": [
-      "@babel/plugin-transform-modules-commonjs"
+      "@babel/plugin-transform-modules-commonjs",
+      "babel-plugin-add-module-exports"
     ]
   },
   "jest": {
