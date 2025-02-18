@@ -1,6 +1,6 @@
 {
   "name": "api-form-integrator",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "API ile entegre çalışan formları yöneten bir paket",
   "main": "dist/index.js",
   "scripts": {
