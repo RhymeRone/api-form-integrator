@@ -2,6 +2,13 @@
 const fs = require('fs');
 const path = require('path');
 
+// Proje kök dizininin alınması
+const rootPath = process.cwd();
+
+// Hedef klasör ve dosya yolu: resources/js/config/integrator.js
+const destinationDir = path.join(rootPath, 'resources', 'js', 'config');
+const destinationFile = path.join(destinationDir, 'integrator.js');
+
 // Temel konfigürasyon örneği (default.config.js'ten alındı)
 const configTemplate = `// API Form Integrator Konfigürasyonu
 const integratorConfig = {
@@ -141,8 +148,16 @@ module.exports = {
 */
 `;
 
-// config.js dosyasını oluştur
-const configPath = path.join(process.cwd(), 'integrator.js');
-fs.writeFileSync(configPath, configTemplate);
+try {
+  // Hedef klasör mevcut değilse oluştur
+  if (!fs.existsSync(destinationDir)) {
+    fs.mkdirSync(destinationDir, { recursive: true });
+  }
 
-console.log('integrator.js dosyası başarıyla oluşturuldu!'); 
+  // Konfigürasyon dosyasını oluştur veya üzerine yaz
+  fs.writeFileSync(destinationFile, configTemplate);
+  console.log(`✅ integrator.js dosyası başarıyla oluşturuldu: ${destinationFile}`);
+} catch (error) {
+  console.error('❌ integrator.js dosyası oluşturulurken bir hata oluştu:', error.message);
+  process.exit(1);
+}
