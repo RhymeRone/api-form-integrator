@@ -1,6 +1,6 @@
 {
   "name": "api-form-integrator",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "API ile entegre çalışan formları yöneten bir paket",
   "type": "module",
   "main": "./dist/cjs/index.cjs",
