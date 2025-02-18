@@ -75,8 +75,8 @@ Paketi doğrudan tarayıcınızda kullanmak için:
    // Örneğin, resources/js/app.js içinden:
    import integratorConfig from './config/integrator';
 
-   // SweetAlert varsayılan ayarları
-   Swal.defaultOptions = APP_CONFIG.UI.notifications;
+   // SweetAlert varsayılan ayarları (opsiyonel)
+   Swal.defaultOptions = integratorConfig.UI.notifications;
 
    const integrator = new ApiFormIntegrator(integratorConfig);
    integrator.initialize();
