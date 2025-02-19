@@ -1,7 +1,7 @@
-import { APP_CONFIG } from '../config/default.config';
-import FormFactory from '../core/FormFactory';
+import { APP_CONFIG } from '../config/default.config.js';
+import FormFactory from '../core/FormFactory.js';
 
-class FormManager {
+export default class FormManager {
     constructor() {
         this.forms = new Map();
     }
@@ -21,4 +21,3 @@ class FormManager {
     }
 }
 
-export default new FormManager();

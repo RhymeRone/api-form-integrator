@@ -1,15 +1,17 @@
 #!/usr/bin/env node
-'use strict';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+import fs from 'fs';
 
-const fs = require('fs');
-const path = require('path');
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 // Proje kök dizininin alınması
 const rootPath = process.cwd();
 
 // Hedef dosya yolu
-const destinationDir = path.join(rootPath, 'resources', 'js', 'config');
-const destinationFile = path.join(destinationDir, 'integrator.config.js');
+const destinationDir = join(rootPath, 'resources', 'js', 'config');
+const destinationFile = join(destinationDir, 'integrator.config.js');
 
 // Temel konfigürasyon örneği (default.config.js'ten alındı)
 const configTemplate = `// API Form Integrator Konfigürasyonu @ts-check
@@ -127,6 +129,12 @@ const getApiErrorConfig = function(status) {
   getValidationMessage,
   getApiErrorConfig
 };
+} else {
+export const getFormConfig = (formKey) => integratorConfig.FORMS[formKey];
+export const getApiConfig = () => integratorConfig.API;
+export const getUiConfig = () => integratorConfig.UI;
+export const getValidationMessage = (rule) => integratorConfig.UI.validation.messages[rule];
+export const getApiErrorConfig = (status) => integratorConfig.API.errors[status]; 
 }
 
 /*

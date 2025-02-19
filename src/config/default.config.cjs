@@ -1,3 +1,5 @@
+'use strict';
+
 export const APP_CONFIG = {
     FORMS: {
         // LOGIN: {
@@ -84,15 +86,13 @@ export const APP_CONFIG = {
     }
 };
 
-// Helper fonksiyonlar
-export const getFormConfig = (formKey) => APP_CONFIG.FORMS[formKey];
-export const getApiConfig = () => APP_CONFIG.API;
-export const getUiConfig = () => APP_CONFIG.UI;
-export const getValidationMessage = (rule) => APP_CONFIG.UI.validation.messages[rule];
-export const getApiErrorConfig = (status) => APP_CONFIG.API.errors[status];
+const getFormConfig = (formKey) => APP_CONFIG.FORMS[formKey];
+const getApiConfig = () => APP_CONFIG.API;
+const getUiConfig = () => APP_CONFIG.UI;
+const getValidationMessage = (rule) => APP_CONFIG.UI.validation.messages[rule];
+const getApiErrorConfig = (status) => APP_CONFIG.API.errors[status];
 
-// Default export ve CommonJS uyumluluğu
-export default {
+module.exports = {
     APP_CONFIG,
     getFormConfig,
     getApiConfig,
@@ -100,15 +100,3 @@ export default {
     getValidationMessage,
     getApiErrorConfig
 };
-
-// CommonJS uyumluluğu için
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = {
-        APP_CONFIG,
-        getFormConfig,
-        getApiConfig,
-        getUiConfig,
-        getValidationMessage,
-        getApiErrorConfig
-    };
-}

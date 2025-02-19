@@ -1,7 +1,8 @@
-import { APP_CONFIG } from '../config/default.config';
+import { APP_CONFIG } from '../config/default.config.js';
 import Swal from 'sweetalert2';
 import axios from 'axios';
 
+const TOKEN_KEY = 'auth_token';
 
 class ApiService {
     constructor() {
@@ -16,7 +17,7 @@ class ApiService {
 
     setupInterceptors() {
         this.axios.interceptors.request.use(config => {
-            const token = localStorage.getItem('token');
+            const token = localStorage.getItem(TOKEN_KEY);
             if (token) {
                 config.headers.Authorization = `Bearer ${token}`;
             }
@@ -32,7 +33,7 @@ class ApiService {
 
                 if (errorConfig) {
                     if (errorConfig.clearToken) {
-                        localStorage.removeItem('token');
+                        localStorage.removeItem(TOKEN_KEY);
                     }
 
                     if (errorConfig.message) {
@@ -72,7 +73,7 @@ class ApiService {
 
         // Token gelirse kaydet
         if (token) {
-            localStorage.setItem('auth_token', token);
+            localStorage.setItem(TOKEN_KEY, token);
         }
 
         // Başarı mesajı varsa göster
@@ -93,7 +94,7 @@ class ApiService {
                 
             case 401:
                 // Token süresi dolmuş veya geçersiz
-                localStorage.removeItem('auth_token');
+                localStorage.removeItem(TOKEN_KEY);
                 this.showError(data.message || 'Oturum süresi doldu');
                 break;
 
@@ -122,11 +123,11 @@ class ApiService {
 
     handleConfigSuccess(config, data) {
         if (config.saveToken && data.token) {
-            localStorage.setItem('auth_token', data.token);
+            localStorage.setItem(TOKEN_KEY, data.token);
         }
 
         if (config.clearToken) {
-            localStorage.removeItem('auth_token');
+            localStorage.removeItem(TOKEN_KEY);
         }
 
         if (config.redirect) {

@@ -1,15 +1,17 @@
 #!/usr/bin/env node
-'use strict';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+import fs from 'fs';
 
-const fs = require('fs');
-const path = require('path');
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 // Proje kök dizininin alınması
 const rootPath = process.cwd();
 
 // Hedef dosya yolu
-const destinationDir = path.join(rootPath, 'resources', 'js', 'config');
-const destinationFile = path.join(destinationDir, 'integrator.config.js');
+const destinationDir = join(rootPath, 'resources', 'js', 'config');
+const destinationFile = join(destinationDir, 'integrator.config.js');
 
 // Temel konfigürasyon örneği (default.config.js'ten alındı)
 const configTemplate = `// API Form Integrator Konfigürasyonu @ts-check
@@ -101,33 +103,11 @@ export const integratorConfig = {
   },
 };
 
-
-if (typeof module !== 'undefined' && module.exports) {
-const getFormConfig = function(formKey) {
-  return integratorConfig.FORMS[formKey];
-};
-const getApiConfig = function() {
-  return integratorConfig.API;
-};
-const getUiConfig = function() {
-  return integratorConfig.UI;
-};
-const getValidationMessage = function(rule) {
-  return integratorConfig.UI.validation.messages[rule];
-};
-const getApiErrorConfig = function(status) {
-  return integratorConfig.API.errors[status];
-};
-
-  module.exports = {
-  integratorConfig,
-  getFormConfig,
-  getApiConfig,
-  getUiConfig,
-  getValidationMessage,
-  getApiErrorConfig
-};
-}
+export const getFormConfig = (formKey) => integratorConfig.FORMS[formKey];
+export const getApiConfig = () => integratorConfig.API;
+export const getUiConfig = () => integratorConfig.UI;
+export const getValidationMessage = (rule) => integratorConfig.UI.validation.messages[rule];
+export const getApiErrorConfig = (status) => integratorConfig.API.errors[status]; 
 
 /*
 ### Açıklamalar ve Öneriler
@@ -155,9 +135,6 @@ const getApiErrorConfig = function(status) {
    - **Özel Hata Yönetimi:** API hatalarına özel yönlendirmeler veya işlemler eklenebilir.
 */
 `;
-module.exports = {
-  configTemplate
-}
 
 try {
   // Hedef dizin yoksa oluştur

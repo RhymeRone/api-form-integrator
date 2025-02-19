@@ -1,6 +1,6 @@
-import { APP_CONFIG, getApiErrorConfig } from '../config/default.config';
-import BaseForm from '../core/BaseForm';
-import ApiService from '../services/api.service';
+import { APP_CONFIG, getApiErrorConfig } from '../config/default.config.js';
+import BaseForm from '../core/BaseForm.js';
+import ApiService from '../services/api.service.js';
 
 export default class FormFactory {
     createForm(formKey) {

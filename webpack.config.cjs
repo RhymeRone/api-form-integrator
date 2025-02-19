@@ -1,30 +1,44 @@
 const path = require('path');
 
 module.exports = {
-  entry: './src/index.js', // Giriş dosyası
+  mode: 'production',
+  entry: './src/index.js',
   output: {
-    path: path.resolve(__dirname, 'dist'), // Çıktı dizini
-    filename: 'integrator.cdn.js', // Çıktı dosyası adı
-    library: 'ApiFormIntegrator', // Global değişken adı
-    libraryTarget: 'umd', // UMD formatı
-    globalObject: 'this', // Tarayıcı ve Node.js uyumluluğu
+    path: path.resolve(__dirname, 'dist'),
+    filename: 'integrator.cdn.js',
+    library: {
+      name: 'ApiFormIntegrator',
+      type: 'umd',
+      export: 'default'
+    },
+    globalObject: 'typeof self !== "undefined" ? self : this'
   },
-  externals: {
-    axios: 'axios',
-    sweetalert2: 'Swal'
+  resolve: {
+    extensions: ['.js', '.cjs', '.mjs'] // Uzantıları belirttik
   },
   module: {
     rules: [
       {
-        test: /\.js$/, // .js uzantılı dosyaları işle
-        exclude: /node_modules/, // node_modules klasörünü hariç tut
+        test: /\.js$/,
+        exclude: /node_modules/,
         use: {
-          loader: 'babel-loader', // Babel kullan
-          options: {
-            presets: ['@babel/preset-env']
-          }
-        },
-      },
-    ],
+          loader: 'babel-loader'
+        }
+      }
+    ]
   },
-}; 
+  externals: {
+    axios: {
+      commonjs: 'axios',
+      commonjs2: 'axios',
+      amd: 'axios',
+      root: 'axios'
+    },
+    sweetalert2: {
+      commonjs: 'sweetalert2',
+      commonjs2: 'sweetalert2',
+      amd: 'sweetalert2',
+      root: 'Swal'
+    }
+  }
+};
