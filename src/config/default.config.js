@@ -100,15 +100,3 @@ export default {
     getValidationMessage,
     getApiErrorConfig
 };
-
-// CommonJS uyumluluğu için
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = {
-        APP_CONFIG,
-        getFormConfig,
-        getApiConfig,
-        getUiConfig,
-        getValidationMessage,
-        getApiErrorConfig
-    };
-}
