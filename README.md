@@ -79,8 +79,10 @@ Paketi doğrudan tarayıcınızda kullanmak için:
    // SweetAlert varsayılan ayarları (opsiyonel)
    Swal.defaultOptions = integratorConfig.UI.notifications;
 
-   const integrator = new ApiFormIntegrator(integratorConfig);
-   integrator.initialize();
+   document.addEventListener('DOMContentLoaded', () => { 
+      const integrator = new ApiFormIntegrator(integratorConfig);
+      integrator.initialize();
+   }
    ```
 
 ### Açıklamalar

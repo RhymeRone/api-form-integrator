@@ -34,3 +34,4 @@ export {
     getValidationMessage,
     getApiErrorConfig
 };
+export default ApiFormIntegrator;

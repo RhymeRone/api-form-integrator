@@ -10,7 +10,8 @@ export default class FormManager {
         Object.keys(APP_CONFIG.FORMS).forEach(formKey => {
             const config = APP_CONFIG.FORMS[formKey];
             if (document.querySelector(config.selector)) {
-                const DynamicForm = FormFactory.createForm(formKey);
+                const factoryInstance = new FormFactory();
+                const DynamicForm = factoryInstance.createForm(formKey);
                 this.forms.set(formKey.toLowerCase(), new DynamicForm());
             }
         });
