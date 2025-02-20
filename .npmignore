@@ -5,6 +5,8 @@ coverage/
 dist/
 src/
 docs/
+/dist/types/**
+  !/dist/types/index.d.ts
 
 # Dosyalar
 .babelrc
@@ -13,6 +15,10 @@ docs/
 .eslintrc
 .prettierrc
 jest.config.js
+rollup.config.js
+tsconfig.json
+babel.config.js
+webpack.config.js
 *.log
 *.tmp
 *.env
@@ -21,5 +27,3 @@ jest.config.js
 .DS_Store
 .idea/
 .vscode/
-
-bin/create-integrator.cjs

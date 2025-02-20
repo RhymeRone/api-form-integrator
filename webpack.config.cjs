@@ -11,10 +11,10 @@ module.exports = {
       type: 'umd',
       export: 'default'
     },
-    globalObject: 'typeof self !== "undefined" ? self : this'
+    globalObject: 'this'
   },
   resolve: {
-    extensions: ['.js', '.cjs', '.mjs'] // Uzantıları belirttik
+    extensions: ['.js']
   },
   module: {
     rules: [
@@ -22,7 +22,10 @@ module.exports = {
         test: /\.js$/,
         exclude: /node_modules/,
         use: {
-          loader: 'babel-loader'
+          loader: 'babel-loader',
+          options: {
+            configFile: './babel.config.cjs'
+          }
         }
       }
     ]

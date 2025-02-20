@@ -3,17 +3,18 @@
 Form yönetimi ve API entegrasyonunu kolaylaştıran, validasyon ve hata yönetimi özelliklerine sahip JavaScript kütüphanesi.
 
 ## 📑 İçindekiler
-- [Özellikler](#-özellikler)
-- [Kurulum](#-kurulum)
-- [Hızlı Başlangıç](#-hızlı-başlangıç)
-- [Detaylı Kullanım](#-detaylı-kullanım)
-- [Konfigürasyon](#-konfigürasyon)
-- [Validasyon](#-validasyon)
-- [API Entegrasyonu](#-api-entegrasyonu)
-- [Hata Yönetimi](#-hata-yönetimi)
-- [Örnekler](#-örnekler)
-- [SSS](#-sık-sorulan-sorular)
-- [Sorun Giderme](#-sorun-giderme)
+  - [Özellikler](#özellikler)
+  - [Kurulum](#kurulum)
+  - [Hızlı Başlangıç](#hızlı-başlangıç)
+  - [Dual Package Desteği](#dual-package-desteği)
+  - [Detaylı Kullanım](#detaylı-kullanım)
+  - [Konfigürasyon](#konfigürasyon)
+  - [Validasyon](#validasyon)
+  - [API Entegrasyonu](#api-entegrasyonu)
+  - [Hata Yönetimi](#hata-yonetimi)
+  - [Örnekler](#örnekler)
+  - [SSS](#sss)
+  - [Sorun Giderme](#sorun-giderme)
 
 ## 🚀 Özellikler
 
@@ -95,6 +96,70 @@ Paketi doğrudan tarayıcınızda kullanmak için:
 
 4. **`import integratorConfig from './config/integrator';`**  
     Bu ifade, entegratör konfigürasyon dosyanızın varsayılan olarak `resources/js/config/integrator.config.js` konumunda bulunduğunu ve `resources/js/app.js` içinden bu şekilde erişilebileceğini belirtir. Eğer entegratör dosyanızı farklı bir dizine taşıdıysanız, lütfen import yolunu dosyanızın bulunduğu yeni konuma göre güncelleyin.
+
+## Dual Package Desteği
+
+Paket, Node.js ve tarayıcı ortamlarında aşağıdaki formatlarda kullanılabilir:
+
+### CommonJS
+
+  ```javascript
+  const ApiFormIntegrator = require('api-form-integrator');
+  const { integratorConfig } = require('./config/integrator.config');
+  
+  const integrator = new ApiFormIntegrator(integratorConfig);
+  integrator.initialize();
+  ```
+
+### ES Modules
+
+  ```javascript
+  import ApiFormIntegrator from 'api-form-integrator';
+  import integratorConfig from './config/integrator.config';
+  
+  const integrator = new ApiFormIntegrator(integratorConfig);
+  integrator.initialize();
+  ```
+
+> **Not:** Her iki kullanım şekli de aynı işlevselliği sunar. Ortama uygun olanı tercih edebilirsiniz.
+
+---
+
+## CDN Uyumluluğu
+
+Paket, CDN servisleri üzerinden de erişilebilir durumdadır. Örneğin, [jsDelivr](https://www.jsdelivr.com/) servisinde UMD formatında yer almaktadır.
+
+### Örnek Kullanım (jsDelivr)
+
+  ```html
+  <!-- jsDelivr üzerinden erişim -->
+  <script src="https://cdn.jsdelivr.net/npm/api-form-integrator@latest/dist/index.js"></script>
+  <script>
+    // CDN kullanımı için, önceden tanımlı bir integratorConfig nesnesi gereklidir.
+    const integrator = new ApiFormIntegrator(integratorConfig);
+    integrator.initialize();
+  </script>
+  ```
+
+---
+
+## Kurulum
+
+Aşağıdaki komut ile projelerinize ekleyebilirsiniz:
+
+  ```bash
+  npm install api-form-integrator
+  ```
+
+---
+
+## Ek Notlar
+
+- **CLI Aracı:** Paket içinde yer alan CLI aracı (örn: `npx create-integrator`) ile konfigürasyon dosyanızı hızlıca oluşturabilirsiniz.
+- **Build Süreci:** Paket, modern JavaScript özellikleri kullanılarak, dual package ve CDN uyumlu olacak şekilde oluşturulmuştur.
+- **Desteklenen Ortamlar:** Hem sunucu (Node.js) hem de tarayıcı ortamlarında sorunsuz kullanılabilmektedir.
+
+Bu özellikler sayesinde API Form Integrator, projelerinizde esnek entegrasyon çözümleri sunar.
 
 ## 📚 Detaylı Kullanım
 

@@ -1,22 +1,36 @@
 // Core modules
 import ApiFormIntegrator from './core/ApiFormIntegrator.js';
 import FormManager from './managers/FormManager.js';
-import config from './config/default.config.js';
+import configManager from './config/default.config.js';
 
-// Named exports
-export { ApiFormIntegrator, FormManager };
-export const {
+// Singleton instance
+let instance = null;
+function getIntegrator(config) { // <-- export keyword kaldırıldı
+    if (!instance) {
+        instance = new ApiFormIntegrator(config);
+    }
+    return instance;
+}
+
+// Config destructuring
+const { 
     APP_CONFIG,
     getFormConfig,
     getApiConfig,
     getUiConfig,
     getValidationMessage,
     getApiErrorConfig
-} = config;
+} = configManager;
 
-// Default export
-export default {
+// Tekil export bloğu
+export {
     ApiFormIntegrator,
     FormManager,
-    ...config
+    getIntegrator, // <-- sadece burada export ediliyor
+    APP_CONFIG,
+    getFormConfig,
+    getApiConfig,
+    getUiConfig,
+    getValidationMessage,
+    getApiErrorConfig
 };

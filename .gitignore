@@ -22,5 +22,3 @@ coverage/
 
 # Geçici dosyalar
 *.tmp
-
-bin/create-integrator.cjs

@@ -92,7 +92,7 @@ export const getValidationMessage = (rule) => APP_CONFIG.UI.validation.messages[
 export const getApiErrorConfig = (status) => APP_CONFIG.API.errors[status];
 
 // Default export ve CommonJS uyumluluğu
-export default {
+const configManager = {
     APP_CONFIG,
     getFormConfig,
     getApiConfig,
@@ -100,3 +100,5 @@ export default {
     getValidationMessage,
     getApiErrorConfig
 };
+
+export default configManager;

@@ -18,11 +18,6 @@ export default class ApiFormIntegrator {
         return this.formManager.getForm(formKey);
     }
 }
-// CJS desteği ekle
-// if (typeof module !== 'undefined' && module.exports) {
-//     module.exports = ApiFormIntegrator;
-//     module.exports.default = ApiFormIntegrator;
-//   }
 
 // Mevcut singleton instance'ı koru
 export const defaultInstance = new ApiFormIntegrator(); 
