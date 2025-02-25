@@ -24,10 +24,12 @@ class BaseForm {
     bindEvents() {
         this.form.addEventListener('submit', async (e) => {
             e.preventDefault();
+
+            this.handleSubmit(e);
             
-            if (await this.validateForm()) {
+           /* if (await this.validateForm()) { // Validasyon kontrolünü dynamic formda yapıyoruz
                 this.handleSubmit(e);
-            }
+            }*/
         });
     }
 
@@ -63,24 +65,12 @@ class BaseForm {
 
     async validateForm() {
         this.validationErrors = {};
-        let isValid = true;
         
         for (const fieldName of Object.keys(this.rules)) {
-            if (!await this.validateField(fieldName)) {
-                isValid = false;
-            }
+            await this.validateField(fieldName);
         }
 
-        if (!isValid) {
-            const errorMessages = Object.values(this.validationErrors);
-            Swal.fire({
-                icon: 'error',
-                title: 'Form Hataları',
-                html: errorMessages.join('<br>')
-            });
-        }
-
-        return isValid;
+        return this.validationErrors;
     }
 
     async validateRule(rule, value, fieldName) {

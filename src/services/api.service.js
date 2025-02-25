@@ -1,67 +1,84 @@
+"use strict";
 import { APP_CONFIG } from '../config/default.config.js';
+import MergeDeep from '../utils/mergeDeep.js';
 import Swal from 'sweetalert2';
 import axios from 'axios';
+import TokenManager from '../managers/TokenManager.js';
 
-const TOKEN_KEY = 'auth_token';
 
-class ApiService {
-    constructor() {
+export default class ApiService {
+    constructor(customConfig = {}) {
+        // Varsayılan API konfigürasyonu ile customConfig'i derinlemesine birleştiriyoruz.
+        this.apiConfig = MergeDeep(APP_CONFIG.API, customConfig);
+
         this.axios = axios.create({
-            baseURL: APP_CONFIG.API.baseURL,
-            headers: APP_CONFIG.API.headers,
-            timeout: APP_CONFIG.API.timeout
+            baseURL: this.apiConfig.baseURL,
+            headers: this.apiConfig.headers,
+            timeout: this.apiConfig.timeout
         });
 
         this.setupInterceptors();
     }
 
     setupInterceptors() {
-        this.axios.interceptors.request.use(config => {
-            const token = localStorage.getItem(TOKEN_KEY);
-            if (token) {
-                config.headers.Authorization = `Bearer ${token}`;
-            }
-            return config;
-        });
-
-        this.axios.interceptors.response.use(
-            response => response,
-            error => {
-                const status = error.response?.status;
-                const errorConfig = APP_CONFIG.API.errors[status];
-                const requestConfig = error.config; // İstek config'ini al
-
-                if (errorConfig) {
-                    if (errorConfig.clearToken) {
-                        localStorage.removeItem(TOKEN_KEY);
-                    }
-
-                    if (errorConfig.message) {
-                        Swal.fire({
-                            icon: 'error',
-                            text: errorConfig.message,
-                            ...APP_CONFIG.UI.notifications
-                        });
-                    }
-
-                    if (errorConfig.redirect && !requestConfig.preventRedirect) {
-                        window.location.href = errorConfig.redirect;
+        // İstek Öncesi İşlemler
+        this.axios.interceptors.request.use(
+            (config) => {
+                // Token ekle
+                TokenManager.addAuthHeader(config);
+                // Rate limiting kontrolü
+                if (this.apiConfig.rateLimiting && this.apiConfig.rateLimiting.enabled) {
+                    if (!this.checkRateLimit()) {
+                        return Promise.reject({ message: 'Rate limit aşıldı' });
                     }
                 }
+                // Güvenlik header'larını ekle
+                if (this.apiConfig.security && this.apiConfig.security.enableSecurityHeaders) {
+                    config.headers = { ...this.apiConfig.security.headers, ...config.headers };
+                }
+                // CSRF token otomatik algılama ve ekleme
+                if (this.apiConfig.csrf && this.apiConfig.csrf.autoDetect) {
+                    const csrfToken = this.getCookie(this.apiConfig.csrf.cookieName);
+                    if (csrfToken) {
+                        config.headers[this.apiConfig.csrf.headerName] = csrfToken;
+                    }
+                }
+                return config;
+            },
+            (error) => Promise.reject(error)
+        );
 
+        // Yanıt İşlemleri
+        this.axios.interceptors.response.use(
+            (response) => {
+                // Başarı durumunda, başarı yönetimi işlemlerini yapar.
+                this.handleSuccess(response);
+                return response;
+            },
+            (error) => {
+                // Hata durumunda, hata yönetimi işlemlerini yapar.
+                this.handleError(error);
                 return Promise.reject(error);
             }
         );
     }
 
+    /**
+     * İstekleri gerçekleştiren metottur.
+     * Ekstra parametreler (preventRedirect, tokenKey, tokenName, clearToken, setTokenKey, setTokenName) 
+     * istek konfigürasyonuna dahil edilir.
+     *
+     * @param {object} config Axios istek konfigürasyonu
+     * @returns {Promise} Axios isteğinin Promise nesnesi
+     */
     async request(config) {
         try {
-            // preventRedirect varsayılan olarak true
             const requestConfig = {
                 ...config,
-                preventRedirect: config.preventRedirect ?? true  // Nullish coalescing operator
+                // tokenKey: config.tokenKey ?? false,
+                // tokenName: config.tokenName ?? false,
+                // clearToken: config.clearToken ?? false,
             };
-            
             return await this.axios(requestConfig);
         } catch (error) {
             throw error;
@@ -69,83 +86,231 @@ class ApiService {
     }
 
     handleSuccess(response) {
-        const { message, token } = response.data;
 
-        // Token gelirse kaydet
-        if (token) {
-            localStorage.setItem(TOKEN_KEY, token);
-        }
+        // onSuccess callback'ini çağırıyoruz. Dönüş değeri false değilse default işlemler yürütülür.
+        const onSuccessResult = (typeof response.config.actions?.success?.onSuccess === 'function')
+            ? response.config.actions.success.onSuccess(response)
+            : true;
 
-        // Başarı mesajı varsa göster
-        if (message) {
-            this.showSuccess(message);
+        // Eğer istek konfigürasyonunda onSuccess callback tanımlıysa, çağırıyoruz.
+        if (onSuccessResult !== false) {
+            TokenManager.processTokenResponse(response.config, response.data);
+
+            // Güvenli erişim için optional chaining kullanıyoruz.
+            // Eğer response.data.message tanımlı ise onu, değilse response.config.success?.message kullanılır.
+            const successMessage = response.data.message ??
+                response.config.actions?.success?.message ??
+                this.apiConfig.success?.message ??
+                "İstek başarılı bir şekilde gerçekleştirildi.";
+
+            if (successMessage) {
+                if ((response.config.sweetalert2 ?? this.apiConfig.sweetalert2 ?? true) === false) {
+                    console.log(successMessage);
+                } else {
+                    this.showSuccess(successMessage);
+                }
+            }
+
+            let preventRedirect = response.config.actions?.preventRedirect ?? this.apiConfig.preventRedirect ?? false;
+            // Eğer başarı durumunda yönlendirme (redirect) tanımlıysa ve istek redirect'i engellenmemişse yönlendiriyoruz.
+            if (response.config.actions?.success?.redirect && !preventRedirect) {
+                setTimeout(() => {
+                    window.location.href = response.config.actions.success.redirect;
+                }, APP_CONFIG.UI?.notifications?.timer ?? 2000);
+            } else if (this.apiConfig.success?.redirect && !preventRedirect) {
+                setTimeout(() => {
+                    window.location.href = this.apiConfig.success.redirect;
+                }, APP_CONFIG.UI?.notifications?.timer ?? 2000);
+            }
         }
 
         return response;
     }
 
+    /**
+     * Global hata yönetimi:
+     * default.config.js'teki APP_CONFIG.API.errors tanımlamalarını kullanarak
+     * hata durumunda token temizleme, mesaj gösterme ve yönlendirme işlemlerini gerçekleştirir.
+     */
     handleError(error) {
-        const { status, data } = error.response;
 
-        switch (status) {
-            case 400:
-                this.showWarning(data.message);
-                break;
-                
-            case 401:
-                // Token süresi dolmuş veya geçersiz
-                localStorage.removeItem(TOKEN_KEY);
-                this.showError(data.message || 'Oturum süresi doldu');
-                break;
+        // Hata durumunda, hata yönetimi işlemlerini yapar.
+        const { status, data } = error.response || {};
+        const errorConfig = this.apiConfig.errors?.[status] || {};
+        const requestConfig = error.response?.config || {};
 
-            case 403:
-                this.showError(data.message || 'Bu işlem için yetkiniz yok');
-                break;
+        // onError callback'ini çağırıyoruz. Dönüş değeri false değilse default işlemler yürütülür.
+        const onErrorResult = (typeof requestConfig.actions?.errors?.onError === 'function')
+            ? requestConfig.actions.errors.onError(error)
+            : true;
 
-            case 422:
-                this.showValidationErrors(data.errors);
-                break;
+        if (onErrorResult !== false) {
 
-            case 429:
-                this.showWarning('Çok fazla istek gönderildi. Lütfen bekleyin.');
-                break;
+            // Yanıt geldiğinde, token kaydetme veya temizleme işlemini yapar.
+            if (requestConfig) {
+                TokenManager.processTokenResponse(requestConfig, data);
+            }
 
-            case 500:
-                this.showError('Sunucu hatası oluştu');
-                break;
+            // Konfigürasyonda tanımlı hata mesajı varsa onu kullanıyoruz.
+            const errorMessage = requestConfig.actions?.errors?.[status]?.message ??
+                requestConfig.actions?.errors?.message ??
+                errorConfig?.message ??
+                this.apiConfig.errors?.message;
+            const errorStatus = error.response?.status;
 
-            default:
-                this.showError('Bir hata oluştu');
+            // Eğer sweetalert2 kullanılmıyorsa konsola loglama yapılıyor; aksi halde uyarı gösteriliyor.
+            if ((requestConfig.sweetalert2 ?? this.apiConfig.sweetalert2 ?? true) === false) {
+                if (errorMessage) {
+                    console.log(errorMessage + ' ' + errorStatus);
+                } else {
+                    switch (status) {
+                        case 400:
+                            console.warn(data?.message || 'Bad Request ' + errorStatus);
+                            break;
+                        case 401:
+                            localStorage.removeItem(this.apiConfig.tokenName);
+                            console.error(data?.message || 'Oturum süresi doldu ' + errorStatus);
+                            break;
+                        case 403:
+                            console.error(data?.message || 'Bu işlem için yetkiniz yok ' + errorStatus);
+                            break;
+                        case 422:
+                            console.error('Validasyon Hataları: ' + errorStatus);
+                            if (data?.errors) {
+                                console.group('Alan Bazlı Hatalar:');
+                                // Her bir alanın adını ve hata mesajlarını düzenli şekilde göster
+                                Object.entries(data.errors).forEach(([field, messages]) => {
+                                    console.error(`🔴 ${field} alanı:`);
+                                    if (Array.isArray(messages)) {
+                                        messages.forEach(message => {
+                                            console.error(`   → ${message}`);
+                                        });
+                                    } else {
+                                        console.error(`   → ${messages}`);
+                                    }
+                                });
+                                console.groupEnd();
+                            }
+                            break;
+                        case 429:
+                            console.warn('Çok fazla istek gönderildi. Lütfen bekleyin. ' + errorStatus);
+                            break;
+                        case 500:
+                            console.error('Sunucu hatası oluştu ' + errorStatus);
+                            break;
+                        default:
+                            console.error('Bir hata oluştu');
+                    }
+                }
+            } else {
+                if (errorMessage) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: errorStatus,
+                        text: errorMessage,
+                        ...APP_CONFIG.UI?.notifications ?? {}
+                    });
+                } else {
+                    switch (status) {
+                        case 400:
+                            this.showWarning(data?.message || 'Bad Request ' + errorStatus);
+                            break;
+                        case 401:
+                            localStorage.removeItem(this.apiConfig.tokenName);
+                            this.showError(data?.message || 'Oturum süresi doldu ' + errorStatus);
+                            break;
+                        case 403:
+                            this.showError(data?.message || 'Bu işlem için yetkiniz yok ' + errorStatus);
+                            break;
+                        case 422:
+                            this.showValidationErrors(data?.errors);
+                            break;
+                        case 429:
+                            this.showWarning('Çok fazla istek gönderildi. Lütfen bekleyin.');
+                            break;
+                        case 500:
+                            this.showError('Sunucu hatası oluştu ' + errorStatus);
+                            break;
+                        default:
+                            this.showError('Bir hata oluştu ' + errorStatus);
+                    }
+                }
+            }
+
+            let preventRedirect = requestConfig.actions?.preventRedirect ?? this.apiConfig.preventRedirect ?? false;
+            let redirect = requestConfig.actions?.errors?.[status]?.redirect ?? requestConfig.actions?.errors?.redirect 
+            ?? this.apiConfig.errors?.[status]?.redirect ?? this.apiConfig.errors?.redirect ?? false;
+            
+            // Eğer hata durumunda yönlendirme (redirect) tanımlıysa ve istek redirect'i engellenmemişse yönlendiriyoruz.
+            if (redirect && !preventRedirect) {
+                setTimeout(() => {
+                    window.location.href = redirect;
+                }, APP_CONFIG.UI?.notifications?.timer ?? 2000);
+            } 
         }
 
-        return Promise.reject(error);
+        return error;
     }
 
-    handleConfigSuccess(config, data) {
-        if (config.saveToken && data.token) {
-            localStorage.setItem(TOKEN_KEY, data.token);
-        }
 
-        if (config.clearToken) {
-            localStorage.removeItem(TOKEN_KEY);
-        }
-
-        if (config.redirect) {
-            window.location.href = config.redirect;
-        }
+    getCookie(name) {
+        if (typeof document === 'undefined') return null;
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop().split(';').shift();
+        return null;
     }
 
-    handleConfigError(config, error) {
-        if (config.redirect) {
-            window.location.href = config.redirect;
+    /**
+     * Rate limiting kontrolü:
+     * Eğer APP_CONFIG.API.rateLimiting.enabled true ise,
+     * stratejiye göre; 'token-bucket' veya 'fixed-window' algoritmasını uygular.
+     */
+    checkRateLimit() {
+        if (this.apiConfig.rateLimiting && this.apiConfig.rateLimiting.enabled) {
+            if (this.apiConfig.rateLimiting.strategy === 'token-bucket') {
+                if (!this.tokenBucket) {
+                    this.tokenBucket = {
+                        tokens: this.apiConfig.rateLimiting.limits.perMinute,
+                        lastRefill: Date.now()
+                    };
+                }
+                const now = Date.now();
+                const refillInterval = 60000; // 1 dakika
+                const elapsed = now - this.tokenBucket.lastRefill;
+                if (elapsed > refillInterval) {
+                    this.tokenBucket.tokens = this.apiConfig.rateLimiting.limits.perMinute;
+                    this.tokenBucket.lastRefill = now;
+                }
+                if (this.tokenBucket.tokens > 0) {
+                    this.tokenBucket.tokens--;
+                    return true;
+                }
+                return false;
+            } else if (this.apiConfig.rateLimiting.strategy === 'fixed-window') {
+                if (!this.fixedWindow) {
+                    this.fixedWindow = {
+                        count: 0,
+                        windowStart: Date.now()
+                    };
+                }
+                const now = Date.now();
+                const fixedWindowDuration = 60000; // 1 dakika
+                if (now - this.fixedWindow.windowStart > fixedWindowDuration) {
+                    this.fixedWindow.count = 0;
+                    this.fixedWindow.windowStart = now;
+                }
+                if (this.fixedWindow.count < this.apiConfig.rateLimiting.limits.perMinute) {
+                    this.fixedWindow.count++;
+                    return true;
+                }
+                return false;
+            }
+            return true;
         }
-
-        if (config.showValidation) {
-            this.showValidationErrors(error.response.data.errors);
-        }
+        return true;
     }
 
-    // Utility methods
     showSuccess(message) {
         Swal.fire({
             icon: 'success',
@@ -173,17 +338,14 @@ class ApiService {
     }
 
     showValidationErrors(errors) {
-        // Tüm validasyon hatalarını tek bir SweetAlert'te göster
-        const errorMessages = Object.values(errors).flat();
-        
+        const errorMessages = Object.values(errors || {}).flat();
         Swal.fire({
             icon: 'error',
             title: 'Validasyon Hatası',
             html: errorMessages.join('<br>')
         });
 
-        // Form alanlarını da işaretle
-        Object.keys(errors).forEach(field => {
+        Object.keys(errors || {}).forEach(field => {
             const input = document.querySelector(`input[name="${field}"]`);
             if (input) {
                 const wrapper = input.closest('.wrap-input100');
@@ -194,5 +356,3 @@ class ApiService {
         });
     }
 }
-
-export default new ApiService(); 

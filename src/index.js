@@ -2,6 +2,9 @@
 import ApiFormIntegrator from './core/ApiFormIntegrator.js';
 import FormManager from './managers/FormManager.js';
 import configManager from './config/default.config.js';
+import ApiService from './services/api.service.js';
+import FormFactory from './core/FormFactory.js';
+import MergeDeep from './utils/mergeDeep.js';
 
 // Singleton instance
 let instance = null;
@@ -26,12 +29,15 @@ const {
 export {
     ApiFormIntegrator,
     FormManager,
-    getIntegrator, // <-- sadece burada export ediliyor
+    getIntegrator,
     APP_CONFIG,
     getFormConfig,
     getApiConfig,
     getUiConfig,
     getValidationMessage,
-    getApiErrorConfig
+    getApiErrorConfig,
+    ApiService,
+    FormFactory,
+    MergeDeep
 };
 export default ApiFormIntegrator;

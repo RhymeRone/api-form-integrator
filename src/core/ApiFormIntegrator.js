@@ -1,11 +1,14 @@
 import { APP_CONFIG } from '../config/default.config.js';
 import FormManager from '../managers/FormManager.js';
+import mergeDeep from '../utils/mergeDeep.js';
 
 export default class ApiFormIntegrator {
+    
     constructor(config) {
         // Mevcut APP_CONFIG'i merge et veya override et
         if (config) {
-            Object.assign(APP_CONFIG, config);
+            // Object.assign(APP_CONFIG, config);
+            mergeDeep(APP_CONFIG, config); // Yeni: Derinlemesine merge yaparak mevcut konfigürasyonu güncelle
         }
         this.formManager = new FormManager();
     }
