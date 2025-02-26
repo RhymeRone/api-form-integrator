@@ -237,7 +237,7 @@ export default class ApiService {
                 }
             }
 
-            let preventRedirect = requestConfig.actions?.preventRedirect ?? this.apiConfig.preventRedirect ?? false;
+            let preventRedirect = requestConfig.preventRedirect ?? this.apiConfig.preventRedirect ?? false;
             let redirect = requestConfig.actions?.errors?.[status]?.redirect ?? requestConfig.actions?.errors?.redirect 
             ?? this.apiConfig.errors?.[status]?.redirect ?? this.apiConfig.errors?.redirect ?? false;
             
