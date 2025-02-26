@@ -111,15 +111,12 @@ export default class ApiService {
                 }
             }
 
-            let preventRedirect = response.config.actions?.preventRedirect ?? this.apiConfig.preventRedirect ?? false;
+            let preventRedirect = response.config.preventRedirect ?? this.apiConfig.preventRedirect ?? false;
+            let redirect = response.config.actions?.success?.redirect ?? this.apiConfig.success?.redirect ?? false;
             // Eğer başarı durumunda yönlendirme (redirect) tanımlıysa ve istek redirect'i engellenmemişse yönlendiriyoruz.
-            if (response.config.actions?.success?.redirect && !preventRedirect) {
+            if (redirect && !preventRedirect) {
                 setTimeout(() => {
-                    window.location.href = response.config.actions.success.redirect;
-                }, APP_CONFIG.UI?.notifications?.timer ?? 2000);
-            } else if (this.apiConfig.success?.redirect && !preventRedirect) {
-                setTimeout(() => {
-                    window.location.href = this.apiConfig.success.redirect;
+                    window.location.href = redirect;
                 }, APP_CONFIG.UI?.notifications?.timer ?? 2000);
             }
         }
