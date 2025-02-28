@@ -63,7 +63,7 @@
 ### CDN ile Kullanım
 Paketi doğrudan tarayıcınızda kullanmak için:
 ```html
-  <script src="https://cdn.jsdelivr.net/npm/api-form-integrator@latest/dist/index.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/api-form-integrator@latest/dist/integrator.cdn.js"></script>
 ```
 
 ## 🚀 Hızlı Başlangıç
