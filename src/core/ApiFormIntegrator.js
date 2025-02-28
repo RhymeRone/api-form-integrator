@@ -1,8 +1,15 @@
 import { APP_CONFIG } from '../config/default.config.js';
 import FormManager from '../managers/FormManager.js';
 import mergeDeep from '../utils/mergeDeep.js';
+import ApiService from '../services/api.service.js';
+import FormFactory from '../core/FormFactory.js';
+
 
 export default class ApiFormIntegrator {
+    static ApiService = ApiService;
+    static FormFactory = FormFactory;
+    static FormManager = FormManager;
+    static MergeDeep = mergeDeep;
     
     constructor(config) {
         // Mevcut APP_CONFIG'i merge et veya override et

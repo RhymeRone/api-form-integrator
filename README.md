@@ -63,6 +63,8 @@
 ### CDN ile Kullanım
 Paketi doğrudan tarayıcınızda kullanmak için:
 ```html
+  <script src="https://unpkg.com/axios/dist/axios.min.js"></script> // Axios Bağımlılığı Yüklenmesi Gerekiyor
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script> // SweetAlert2 Bağımlılığı Yüklenmesi Gerekiyor
   <script src="https://cdn.jsdelivr.net/npm/api-form-integrator@latest/dist/integrator.cdn.js"></script>
 ```
 
@@ -304,6 +306,89 @@ Veri doğrulama kuralları ile:
   }
 ```
 
+### Validasyon Mesajları Konfigürasyonu (APP_CONFIG.UI.VALIDATION.MESSAGES) - ✨ Yeni Özellik 
+
+API Form Integrator artık her alan için özel validasyon mesajları tanımlamanıza olanak sağlıyor. Bu özellik sayesinde formlarınızdaki validasyon hatalarını daha açıklayıcı ve kullanıcı dostu şekilde gösterebilirsiniz.
+
+#### Kullanım
+
+`integrator.config.js` dosyanızda, form alanları için `rules` tanımının yanına `messages` ekleyebilirsiniz:
+
+  ```javascript
+  fields: {
+    name: {
+      rules: [
+        'required',
+        'min:2',
+        'max:100',
+        'regex:/^[a-zA-ZğüşıöçĞÜŞİÖÇ\\s]+$/'
+      ],
+      messages: {
+        required: 'İsim alanı zorunludur.',
+        min: 'İsim en az 2 karakter olmalıdır.',
+        max: 'İsim en fazla 100 karakter olmalıdır.',
+        regex: 'İsim sadece harflerden oluşmalıdır.'
+      }
+    },
+    phone: {
+      rules: [
+        'required',
+        'min:10',
+        'max:15',
+        'regex:/^[0-9]+$/'
+      ],
+      messages: {
+        required: 'Telefon alanı zorunludur.',
+        min: 'Telefon numarası en az 10 karakter olmalıdır.',
+        max: 'Telefon numarası en fazla 15 karakter olmalıdır.',
+        regex: 'Telefon numarası sadece rakamlardan oluşmalıdır.'
+      }
+    }
+  }
+  ```
+
+#### Regex Örnekleri
+
+Yaygın kullanılan regex örnekleri:
+
+  ```javascript
+  // Sadece harfler ve boşluk
+  'regex:/^[a-zA-ZğüşıöçĞÜŞİÖÇ\\s]+$/'
+  
+  // Sadece sayılar
+  'regex:/^[0-9]+$/'
+  
+  // E-posta adresi
+  'regex:/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$/'
+  
+  // URL
+  'regex:/^(https?:\\/\\/)?([\\da-z.-]+)\\.([a-z.]{2,6})([\\/\\w .-]*)*\\/?$/'
+  
+  // Türkiye telefon numarası (5XX XXX XX XX)
+  'regex:/^5[0-9]{2}[0-9]{3}[0-9]{2}[0-9]{2}$/'
+  ```
+
+#### Desteklenen Validasyon Kuralları
+
+API Form Integrator aşağıdaki validasyon kurallarını destekler ve her biri için özel mesajlar tanımlayabilirsiniz:
+
+- `required`: Alan zorunlu
+- `email`: Geçerli bir e-posta adresi olmalı
+- `min:x`: Minimum karakter sayısı veya sayısal değer
+- `max:x`: Maksimum karakter sayısı veya sayısal değer
+- `numeric`: Sadece sayısal değer
+- `boolean`: Boolean değer
+- `url`: Geçerli bir URL
+- `date`: Geçerli bir tarih
+- `before:date`: Belirtilen tarihten önce
+- `after:date`: Belirtilen tarihten sonra
+- `regex:/pattern/`: Düzenli ifade kontrolü
+- `nullable`: Boş bırakılabilir
+- `file`: Dosya tipi kontrolü
+- `image`: Resim dosyası kontrolü
+- `mimes:ext1,ext2`: Belirli dosya uzantıları
+- `dimensions:params`: Resim boyutları kontrolü
+
 ### Helper Fonksiyonlar
 ```javascript
   // Form konfigürasyonunu alır
@@ -537,6 +622,8 @@ console.log(mergedConfig);
 ```
 
 >**Daha detaylı temel bilgiler için [Wiki](https://github.com/RhymeRone/api-form-integrator/wiki) 'yi ziyaret ediniz.**
+
+
 
 ## ❓ SSS
 

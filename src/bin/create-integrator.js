@@ -29,12 +29,286 @@ export const integratorConfig = {
    // clearToken: true, // İstek sonrası token temizleme, eğer true ise tokenName değeri varsa localStorage'da silinir.
       fields: {
         email: {
-          rules: ['required', 'email'], // Validasyon kuralları
+          rules: ['required', 'email'],
+          messages: {
+            required: 'Email adresi zorunludur',
+            email: 'Geçerli bir email adresi giriniz'
+          }
         },
         password: {
-          rules: ['required', 'min:6'], // Şifre için en az 6 karakter kuralı
+          rules: ['required', 'min:6'],
+          messages: {
+            required: 'Şifre zorunludur',
+            min: 'Şifre en az 6 karakter olmalıdır'
+          }
         },
       },
+      /*
+            fields: {
+        // Kişisel Bilgiler
+        name: {
+          rules: [
+            'required',
+            'min:2',
+            'max:100',
+            'regex:/^[a-zA-ZğüşıöçĞÜŞİÖÇ\\s]+$/'
+          ],
+          messages: {
+            required: 'İsim alanı zorunludur.',
+            min: 'İsim en az 2 karakter olmalıdır.',
+            max: 'İsim en fazla 100 karakter olmalıdır.',
+            regex: 'İsim sadece harflerden oluşmalıdır.'
+          }
+        },
+        position: {
+          rules: [
+            'required',
+            'min:3',
+            'max:100',
+            'regex:/^[a-zA-ZğüşıöçĞÜŞİÖÇ\\s]+$/'
+          ],
+          messages: {
+            required: 'Pozisyon alanı zorunludur.',
+            min: 'Pozisyon en az 3 karakter olmalıdır.',
+            max: 'Pozisyon en fazla 100 karakter olmalıdır.',
+            regex: 'Pozisyon sadece harflerden oluşmalıdır.'
+          }
+        },
+        slogan: {
+          rules: [
+            'required',
+            'max:255'
+          ],
+          messages: {
+            required: 'Slogan alanı zorunludur.',
+            max: 'Slogan en fazla 255 karakter olmalıdır.'
+          }
+        },
+        birthday: {
+          rules: [
+            'required',
+            'date',
+            'before:today',
+            'after:1900-01-01'
+          ],
+          messages: {
+            required: 'Doğum tarihi alanı zorunludur.',
+            date: 'Geçerli bir doğum tarihi giriniz.',
+            before: 'Doğum tarihi bugünden önce olmalıdır.',
+            after: 'Doğum tarihi 1900 yılından sonra olmalıdır.'
+          }
+        },
+        degree: {
+          rules: [
+            'required',
+            'max:100'
+          ],
+          messages: {
+            required: 'Derece alanı zorunludur.',
+            max: 'Derece en fazla 100 karakter olmalıdır.'
+          }
+        },
+        email: {
+          rules: [
+            'required',
+            'email',
+            'max:255',
+            'regex:/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/'
+          ],
+          messages: {
+            required: 'E-posta alanı zorunludur.',
+            email: 'Geçerli bir e-posta adresi giriniz.',
+            max: 'E-posta en fazla 255 karakter olmalıdır.',
+            regex: 'Geçerli bir e-posta formatı giriniz.'
+          }
+        },
+        phone: {
+          rules: [
+            'required',
+            'min:10',
+            'max:15',
+            'regex:/^[0-9]+$/'
+          ],
+          messages: {
+            required: 'Telefon alanı zorunludur.',
+            min: 'Telefon numarası en az 10 karakter olmalıdır.',
+            max: 'Telefon numarası en fazla 15 karakter olmalıdır.',
+            regex: 'Telefon numarası sadece rakamlardan oluşmalıdır.'
+          }
+        },
+        address: {
+          rules: [
+            'required',
+            'max:255'
+          ],
+          messages: {
+            required: 'Adres alanı zorunludur.',
+            max: 'Adres en fazla 255 karakter olmalıdır.'
+          }
+        },
+      
+        // Profesyonel Bilgiler
+        experience: {
+          rules: [
+            'required',
+            'numeric',
+            'min:0',
+            'max:100'
+          ],
+          messages: {
+            required: 'Tecrübe alanı zorunludur.',
+            numeric: 'Tecrübe sayısal bir değer olmalıdır.',
+            min: 'Tecrübe 0 veya daha büyük olmalıdır.',
+            max: 'Tecrübe 100 yıldan fazla olamaz.'
+          }
+        },
+        projects: {
+          rules: [
+            'required',
+            'numeric',
+            'min:0',
+            'max:10000'
+          ],
+          messages: {
+            required: 'Proje sayısı alanı zorunludur.',
+            numeric: 'Proje sayısı sayısal bir değer olmalıdır.',
+            min: 'Proje sayısı 0 veya daha büyük olmalıdır.',
+            max: 'Proje sayısı 10000\'den fazla olamaz.'
+          }
+        },
+        clients: {
+          rules: [
+            'required',
+            'numeric',
+            'min:0',
+            'max:10000'
+          ],
+          messages: {
+            required: 'Müşteri sayısı alanı zorunludur.',
+            numeric: 'Müşteri sayısı sayısal bir değer olmalıdır.',
+            min: 'Müşteri sayısı 0 veya daha büyük olmalıdır.',
+            max: 'Müşteri sayısı 10000\'den fazla olamaz.'
+          }
+        },
+        freelance: {
+          rules: [
+            'required',
+            'boolean'
+          ],
+          messages: {
+            required: 'Freelance durumu alanı zorunludur.',
+            boolean: 'Freelance durumu geçerli bir değer olmalıdır.'
+          }
+        },
+      
+        // Sosyal Medya Bağlantıları
+        linkedin: {
+          rules: [
+            'required',
+            'url',
+            'regex:/^(https?:\/\/)?(www\.)?linkedin\.com\/.*$/'
+          ],
+          messages: {
+            required: 'LinkedIn alanı zorunludur.',
+            url: 'Geçerli bir LinkedIn URL\'si giriniz.',
+            regex: 'Geçerli bir LinkedIn profil bağlantısı giriniz.'
+          }
+        },
+        github: {
+          rules: [
+            'required',
+            'url',
+            'regex:/^(https?:\/\/)?(www\.)?github\.com\/.*$/'
+          ],
+          messages: {
+            required: 'GitHub alanı zorunludur.',
+            url: 'Geçerli bir GitHub URL\'si giriniz.',
+            regex: 'Geçerli bir GitHub profil bağlantısı giriniz.'
+          }
+        },
+        twitter: {
+          rules: [
+            'required',
+            'url',
+            'regex:/^(https?:\/\/)?(www\.)?(twitter|x)\.com\/.*$/'
+          ],
+          messages: {
+            required: 'Twitter alanı zorunludur.',
+            url: 'Geçerli bir Twitter URL\'si giriniz.',
+            regex: 'Geçerli bir Twitter profil bağlantısı giriniz.'
+          }
+        },
+        facebook: {
+          rules: [
+            'required',
+            'url',
+            'regex:/^(https?:\/\/)?(www\.)?facebook\.com\/.*$/'
+          ],
+          messages: {
+            required: 'Facebook alanı zorunludur.',
+            url: 'Geçerli bir Facebook URL\'si giriniz.',
+            regex: 'Geçerli bir Facebook profil bağlantısı giriniz.'
+          }
+        },
+        instagram: {
+          rules: [
+            'required',
+            'url',
+            'regex:/^(https?:\/\/)?(www\.)?instagram\.com\/.*$/'
+          ],
+          messages: {
+            required: 'Instagram alanı zorunludur.',
+            url: 'Geçerli bir Instagram URL\'si giriniz.',
+            regex: 'Geçerli bir Instagram profil bağlantısı giriniz.'
+          }
+        },
+        website: {
+          rules: [
+            'required',
+            'url',
+            'regex:/^(https?:\/\/)?(www\.)?[a-zA-Z0-9][a-zA-Z0-9-]{1,61}[a-zA-Z0-9]\.[a-zA-Z]{2,}.*$/'
+          ],
+          messages: {
+            required: 'Website alanı zorunludur.',
+            url: 'Geçerli bir website URL\'si giriniz.',
+            regex: 'Geçerli bir website adresi giriniz.'
+          }
+        },
+      
+        // Dosya Alanları
+        image: {
+          rules: [
+            'required',
+            'file',
+            'image',
+            'mimes:jpeg,png,jpg,gif',
+            'max:2048', // 2MB
+            'dimensions:min_width=100,min_height=100,max_width=2000,max_height=2000'
+          ],
+          messages: {
+            required: 'Profil resmi alanı zorunludur.',
+            file: 'Profil resmi bir dosya olmalıdır.',
+            image: 'Yüklenen dosya bir resim olmalıdır.',
+            mimes: 'Resim JPEG, PNG, JPG veya GIF formatında olmalıdır.',
+            max: 'Resim boyutu en fazla 2MB olmalıdır.',
+            dimensions: 'Resim boyutları en az 100x100px, en fazla 2000x2000px olmalıdır.'
+          }
+        },
+        cv_file: {
+          rules: [
+            'required',
+            'file',
+            'mimes:pdf,doc,docx',
+            'max:5120' // 5MB
+          ],
+          messages: {
+            required: 'CV dosyası alanı zorunludur.',
+            file: 'CV bir dosya olmalıdır.',
+            mimes: 'CV dosyası PDF, DOC veya DOCX formatında olmalıdır.',
+            max: 'CV dosyası boyutu en fazla 5MB olmalıdır.'
+          }
+        }
+      },*/
       actions: {
         // onSubmit callback desteği: Form gönderilmeden önce çalışır.
         onSubmit: (formData) => { console.log(formData) }, // Form verilerini konsola yazdır
@@ -43,10 +317,12 @@ export const integratorConfig = {
         // onError callback desteği: API hata döndürdüğünde çalışır.
         onError: (error) => { console.log(error); return true }, // false döndürürse default hata işlemleri çalışmaz.
         success: {
+          preventRedirect: false, // Başarı durumunda yönlendirme engelleme
           redirect: '/dashboard', // Yönlendirme yapılacak sayfa
           message: 'Giriş başarılı!', // Başarı mesajı
         },
         errors: {
+          preventRedirect: false, // Hata durumunda yönlendirme engelleme
           // redirect: '/login',
           message: 'Bir hata oluştu',     
           400: {
@@ -83,6 +359,7 @@ export const integratorConfig = {
     // Örnek: {"data.token": "1234567890"} şeklinde bir yanıt aldığınızda tokenName değerini "data.token" olarak giriniz.
     // tokenKey değeri girildiğinde, token değeri header'da Authorization: Bearer tokenKey değeri şeklinde saklanır.
     errors: { // Hata durumları
+        preventRedirect: false, // Hata durumunda yönlendirme engelleme
         // redirect: '/', // Hata durumunda yönlendirme
         message: 'Bir hata oluştu', // Hata durumunda mesaj
         401: {
@@ -94,6 +371,7 @@ export const integratorConfig = {
         }
     },
     success: {
+         preventRedirect: false, // Başarı durumunda yönlendirme engelleme
       // redirect: '/', // Başarı durumunda yönlendirme
          message: 'İşlem başarılı!' // Başarı durumunda mesaj
     },

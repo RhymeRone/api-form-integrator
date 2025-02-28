@@ -111,7 +111,8 @@ export default class ApiService {
                 }
             }
 
-            let preventRedirect = response.config.preventRedirect ?? this.apiConfig.preventRedirect ?? false;
+            let preventRedirect = response.config.actions?.success?.preventRedirect ?? response.config.preventRedirect 
+            ?? this.apiConfig.actions?.success?.preventRedirect ?? this.apiConfig.preventRedirect ?? false;
             let redirect = response.config.actions?.success?.redirect ?? this.apiConfig.success?.redirect ?? false;
             // Eğer başarı durumunda yönlendirme (redirect) tanımlıysa ve istek redirect'i engellenmemişse yönlendiriyoruz.
             if (redirect && !preventRedirect) {
@@ -234,7 +235,8 @@ export default class ApiService {
                 }
             }
 
-            let preventRedirect = requestConfig.preventRedirect ?? this.apiConfig.preventRedirect ?? false;
+            let preventRedirect = requestConfig.actions?.errors?.preventRedirect ?? requestConfig.preventRedirect ?? 
+            this.apiConfig.actions?.errors?.preventRedirect ?? this.apiConfig.preventRedirect ?? false; 
             let redirect = requestConfig.actions?.errors?.[status]?.redirect ?? requestConfig.actions?.errors?.redirect 
             ?? this.apiConfig.errors?.[status]?.redirect ?? this.apiConfig.errors?.redirect ?? false;
             

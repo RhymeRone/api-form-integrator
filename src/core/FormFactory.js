@@ -81,24 +81,72 @@ export default class FormFactory {
                 this.setRules(this.prepareRules());
             }
 
+            // prepareRules() {
+            //     const rules = {};
+            //     if (this.config.fields) {
+            //         Object.entries(this.config.fields).forEach(([field, fieldConfig]) => {
+            //             rules[field] = fieldConfig.rules.map(rule => {
+            //                 const [type, value] = rule.includes(':') ? rule.split(':') : [rule, null];
+            //                 return {
+            //                     type,
+            //                     value,
+            //                     message: typeof APP_CONFIG.UI.validation.messages[type] === 'function'
+            //                         ? APP_CONFIG.UI.validation.messages[type](field, value)
+            //                         : APP_CONFIG.UI.validation.messages[type] || `${field} alanı için ${type} kuralı uygulanamadı.`
+            //                 };
+            //             });
+            //         });
+            //     }
+            //     return rules;
+            // }
             prepareRules() {
                 const rules = {};
                 if (this.config.fields) {
                     Object.entries(this.config.fields).forEach(([field, fieldConfig]) => {
+                        if (!fieldConfig.rules || !Array.isArray(fieldConfig.rules)) {
+                            return; // Kurallar tanımlanmamışsa atla
+                        }
+
                         rules[field] = fieldConfig.rules.map(rule => {
-                            const [type, value] = rule.includes(':') ? rule.split(':') : [rule, null];
+                            // Kural formatını parse et (örn: 'min:3', 'required', 'regex:/pattern/')
+                            let type, value;
+
+                            if (rule.includes(':')) {
+                                const parts = rule.split(':');
+                                type = parts[0];
+                                value = parts.slice(1).join(':'); // regex için : karakteri içerebilir
+                            } else {
+                                type = rule;
+                                value = null;
+                            }
+
+                            // Alan bazlı özel mesajları kontrol et
+                            let message;
+
+                            // 1. Önce alan için özel tanımlanmış mesajları kontrol et
+                            if (fieldConfig.messages && fieldConfig.messages[type]) {
+                                message = fieldConfig.messages[type];
+                            }
+                            // 2. Genel validasyon mesajlarını kontrol et
+                            else if (typeof APP_CONFIG.UI.validation.messages[type] === 'function') {
+                                message = APP_CONFIG.UI.validation.messages[type](field, value);
+                            }
+                            // 3. Sabit mesajları kontrol et
+                            else {
+                                message = APP_CONFIG.UI.validation.messages[type] || `${field} alanı için ${type} kuralı uygulanamadı.`;
+                            }
+
                             return {
                                 type,
                                 value,
-                                message: typeof APP_CONFIG.UI.validation.messages[type] === 'function'
-                                    ? APP_CONFIG.UI.validation.messages[type](field, value)
-                                    : APP_CONFIG.UI.validation.messages[type] || `${field} alanı için ${type} kuralı uygulanamadı.`
+                                message
                             };
                         });
                     });
                 }
                 return rules;
             }
+
 
             async handleSubmit(e) {
                 e.preventDefault();
@@ -107,13 +155,17 @@ export default class FormFactory {
                 const formData = this.getFormData();
 
                 // Validasyon kontrolü
-                if (this.config.validation ?? true)
-                    if (this.showValidationErrors(await this.validateForm()))
+                if (this.config.validation ?? true) {
+                    const validationErrors = await this.validateForm();
+                    if (validationErrors) {
+                        this.showValidationErrors(validationErrors);
                         return false;
+                    }
+                }
 
                 // onSubmit callback
                 if (this.config.actions?.onSubmit && typeof this.config.actions.onSubmit === 'function') {
-                    const modifiedData = this.config.actions.onSubmit(formData);
+                    let modifiedData = this.config.actions.onSubmit(formData);
                     if (modifiedData !== undefined) {
                         formData = modifiedData;
                     }
@@ -136,43 +188,69 @@ export default class FormFactory {
                     throw error;
                 }
             }
-/*
-            showValidationErrors(errors) {
-                Object.entries(errors).forEach(([field, messages]) => {
-                    const input = this.inputs && this.inputs[field];
-                    if (input) {
-                        input.classList.add(APP_CONFIG.UI.validation.errorClass);
-
-                        if ((this.config.sweetalert2 ?? APP_CONFIG.API.sweetalert2 ?? true) === false) {
-                            console.error(`Validation Hata [${field}]:`, messages[0]);
-                        } else {
-                            Swal.fire({
-                                icon: 'error',
-                                text: messages[0],
-                                ...APP_CONFIG.UI.notifications
+            /*
+                        showValidationErrors(errors) {
+                            Object.entries(errors).forEach(([field, messages]) => {
+                                const input = this.inputs && this.inputs[field];
+                                if (input) {
+                                    input.classList.add(APP_CONFIG.UI.validation.errorClass);
+            
+                                    if ((this.config.sweetalert2 ?? APP_CONFIG.API.sweetalert2 ?? true) === false) {
+                                        console.error(`Validation Hata [${field}]:`, messages[0]);
+                                    } else {
+                                        Swal.fire({
+                                            icon: 'error',
+                                            text: messages[0],
+                                            ...APP_CONFIG.UI.notifications
+                                        });
+                                    }
+                                }
                             });
+                        }*/
+
+            showValidationErrors(errors) {
+                if (!errors || Object.keys(errors).length === 0) return false;
+
+                // Hata mesajlarını topla
+                const errorMessages = [];
+
+                Object.entries(errors).forEach(([field, message]) => {
+                    // Sadece mesajı ekle, alan adını ekleme
+                    errorMessages.push(message);
+
+                    // Form alanına hata sınıfı ekle
+                    const input = document.querySelector(`[name="${field}"]`);
+                    if (input) {
+                        input.classList.add(APP_CONFIG.UI.validation.errorClass || 'is-invalid');
+
+                        // Hata mesajını göster (opsiyonel)
+                        const errorElement = document.createElement('div');
+                        errorElement.className = 'invalid-feedback';
+                        errorElement.textContent = message;
+
+                        // Eğer zaten bir hata mesajı varsa, onu güncelle
+                        const existingError = input.nextElementSibling;
+                        if (existingError && existingError.className === 'invalid-feedback') {
+                            existingError.textContent = message;
+                        } else {
+                            input.parentNode.insertBefore(errorElement, input.nextElementSibling);
                         }
                     }
                 });
-            }*/
 
-            showValidationErrors(errors) {
-                if (errors && Object.keys(errors).length > 0) {
-                    const errorMessages = Object.values(errors);
-                    if ((this.config.sweetalert2 ?? APP_CONFIG.API.sweetalert2 ?? true) === false) {
-                        errorMessages.forEach(message => {
-                            console.error(`Validation Hata:`, message);
-                        });
-                    } else {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Form Hataları',
-                            html: errorMessages.join('<br>'),
-                            ...APP_CONFIG.UI.notifications
-                        });
-                    }
-                    return true;
-                } else return false;
+                // SweetAlert2 ile hataları göster
+                if ((this.config.sweetalert2 ?? APP_CONFIG.API.sweetalert2 ?? true) !== false) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Form Hataları',
+                        html: errorMessages.join('<br>'),
+                        ...APP_CONFIG.UI.notifications
+                    });
+                } else {
+                    console.error('Validasyon Hataları:', errors);
+                }
+
+                return true;
             }
         }
     }
