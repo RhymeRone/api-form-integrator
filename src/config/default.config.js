@@ -85,7 +85,7 @@ export const APP_CONFIG = {
             // redirect: '/', // Başarı durumunda yönlendirme
             message: 'İşlem başarılı!' // Başarı durumunda mesaj
         },
-        // Yeni: Güvenlik header’ları ayarları
+        // Yeni: Güvenlik header'ları ayarları
         security: {
             enableSecurityHeaders: true,
             headers: {
@@ -128,6 +128,8 @@ export const APP_CONFIG = {
             showErrors: true,
             errorClass: 'is-invalid',
             successClass: 'is-valid',
+            errorDisplayMode: 'inline', // 'inline' veya 'pop'
+            errorColor: '#dc3545',
             messages: {
                 required: (field) => {
                     const messages = {

@@ -74,31 +74,12 @@ export default class FormFactory {
         return class DynamicForm extends BaseForm {
             constructor() {
                 // BaseForm'a sadece selector'ü gönder
-                super(config.selector);
+                super(config.selector, config);
                 this.formKey = formKey;
                 this.config = config;
                 this.apiConfig = apiConfig;
                 this.setRules(this.prepareRules());
             }
-
-            // prepareRules() {
-            //     const rules = {};
-            //     if (this.config.fields) {
-            //         Object.entries(this.config.fields).forEach(([field, fieldConfig]) => {
-            //             rules[field] = fieldConfig.rules.map(rule => {
-            //                 const [type, value] = rule.includes(':') ? rule.split(':') : [rule, null];
-            //                 return {
-            //                     type,
-            //                     value,
-            //                     message: typeof APP_CONFIG.UI.validation.messages[type] === 'function'
-            //                         ? APP_CONFIG.UI.validation.messages[type](field, value)
-            //                         : APP_CONFIG.UI.validation.messages[type] || `${field} alanı için ${type} kuralı uygulanamadı.`
-            //                 };
-            //             });
-            //         });
-            //     }
-            //     return rules;
-            // }
             prepareRules() {
                 const rules = {};
                 if (this.config.fields) {
@@ -188,57 +169,175 @@ export default class FormFactory {
                     throw error;
                 }
             }
-            /*
-                        showValidationErrors(errors) {
-                            Object.entries(errors).forEach(([field, messages]) => {
-                                const input = this.inputs && this.inputs[field];
-                                if (input) {
-                                    input.classList.add(APP_CONFIG.UI.validation.errorClass);
-            
-                                    if ((this.config.sweetalert2 ?? APP_CONFIG.API.sweetalert2 ?? true) === false) {
-                                        console.error(`Validation Hata [${field}]:`, messages[0]);
-                                    } else {
-                                        Swal.fire({
-                                            icon: 'error',
-                                            text: messages[0],
-                                            ...APP_CONFIG.UI.notifications
-                                        });
-                                    }
-                                }
-                            });
-                        }*/
 
             showValidationErrors(errors) {
                 if (!errors || Object.keys(errors).length === 0) return false;
-
-                // Hata mesajlarını topla
+                // Hata mesajlarını topla - bu her zaman yapılacak
                 const errorMessages = [];
-
+                
+                // Tüm hata mesajlarını topla (showErrors değerinden bağımsız)
                 Object.entries(errors).forEach(([field, message]) => {
-                    // Sadece mesajı ekle, alan adını ekleme
+                    // Hata mesajlarını her zaman topla
                     errorMessages.push(message);
-
-                    // Form alanına hata sınıfı ekle
-                    const input = document.querySelector(`[name="${field}"]`);
-                    if (input) {
-                        input.classList.add(APP_CONFIG.UI.validation.errorClass || 'is-invalid');
-
-                        // Hata mesajını göster (opsiyonel)
-                        const errorElement = document.createElement('div');
-                        errorElement.className = 'invalid-feedback';
-                        errorElement.textContent = message;
-
-                        // Eğer zaten bir hata mesajı varsa, onu güncelle
-                        const existingError = input.nextElementSibling;
-                        if (existingError && existingError.className === 'invalid-feedback') {
-                            existingError.textContent = message;
-                        } else {
-                            input.parentNode.insertBefore(errorElement, input.nextElementSibling);
-                        }
-                    }
                 });
 
-                // SweetAlert2 ile hataları göster
+                // Hata gösterim modunu al
+                const errorDisplayMode = this.config?.validationOptions?.errorDisplayMode ?? APP_CONFIG.UI.validation.errorDisplayMode ?? 'inline';
+                
+                // DOM manipülasyonu sadece this.showErrors true ise yapılacak
+                // Not: this.showErrors değişkeni BaseForm'dan gelir ve form konfigürasyonuna göre belirlenir
+                if (this.showErrors) {
+                    // Tüm input alanlarını bul
+                    const allInputs = Object.values(this.inputs);
+                    
+                    // Önce tüm hata ve başarı sınıflarını temizle
+                    allInputs.forEach(input => {
+                        if (input) {
+                            input.classList.remove(this.errorClass);
+                            input.classList.remove(this.successClass);
+                            
+                            // Inputun yanındaki hata mesajı elementini kaldır (inline mod kullanıldıysa)
+                            const errorElement = input.nextElementSibling;
+                            if (errorElement && errorElement.className === 'invalid-feedback') {
+                                errorElement.remove();
+                            }
+                        }
+                    });
+                    
+                    // DOM'a hata göstergelerini ekle (showErrors true ise)
+                    Object.entries(errors).forEach(([field, message]) => {
+                        // Form alanına hata sınıfı ekle
+                        const input = document.querySelector(`[name="${field}"]`);
+                        if (input) {
+                            // Radio veya checkbox kontrol et
+                            const isCheckboxOrRadio = input.type === 'checkbox' || input.type === 'radio';
+                            
+                            // Hata sınıfını ekle (checkbox/radio değilse)
+                            if (!isCheckboxOrRadio) {
+                                input.classList.add(this.errorClass);
+                            }
+                            
+                            // Hata gösterim moduna göre işlem yap
+                            if (errorDisplayMode === 'pop') {
+                                // Önce mevcut hata göstergesini temizle
+                                const existingError = input.nextElementSibling;
+                                if (existingError && existingError.className === 'invalid-feedback') {
+                                    existingError.remove();
+                                }
+                                
+                                if (!isCheckboxOrRadio) {
+                                    // DOM tabanlı popup yaklaşımı - sadece checkbox/radio değilse
+                                    input.classList.add('api-form-validation-error');
+                                    
+                                    // Mevcut popup'ı kontrol et
+                                    let popup = document.getElementById(`error-popup-${field}`);
+                                    if (!popup) {
+                                        // Popup yoksa yeni oluştur
+                                        popup = document.createElement('div');
+                                        popup.id = `error-popup-${field}`;
+                                        popup.className = 'api-form-error-popup';
+                                        document.body.appendChild(popup);
+                                        
+                                        // Event listener'ları ekle
+                                        const hidePopup = () => popup.classList.remove('show');
+                                        const showPopup = () => {
+                                            // SweetAlert açıksa görünme
+                                            if (document.querySelector('.swal2-container')) {
+                                                return;
+                                            }
+                                            // Eğer input valid ise popup'ı gösterme
+                                            if (!input.classList.contains(this.errorClass)) {
+                                                return;
+                                            }
+                                            popup.classList.add('show');
+                                        };
+                                        
+                                        // Sadece gerekli event'leri ekle
+                                        input.addEventListener('mouseenter', showPopup);
+                                        input.addEventListener('mouseleave', hidePopup);
+                                        input.addEventListener('focus', showPopup);
+                                        input.addEventListener('blur', hidePopup);
+                                    }
+                                    
+                                    // Popup içeriğini ve konumunu güncelle
+                                    popup.textContent = message;
+                                    
+                                    // errorColor kullanarak popup rengini güncelle
+                                    if (this.errorColor) {
+                                        popup.style.backgroundColor = this.errorColor;
+                                        // Ok rengini de güncelle
+                                        const afterStyle = `
+                                            #${popup.id}::after {
+                                                border-top-color: ${this.errorColor} !important;
+                                            }
+                                        `;
+                                        // Mevcut stil varsa güncelle, yoksa ekle
+                                        let styleEl = document.getElementById(`${popup.id}-style`);
+                                        if (!styleEl) {
+                                            styleEl = document.createElement('style');
+                                            styleEl.id = `${popup.id}-style`;
+                                            document.head.appendChild(styleEl);
+                                        }
+                                        styleEl.textContent = afterStyle;
+                                    }
+                                    
+                                    const inputRect = input.getBoundingClientRect();
+                                    popup.style.position = 'fixed';
+                                    popup.style.top = (inputRect.top - popup.offsetHeight - 10) + 'px';
+                                    popup.style.left = inputRect.left + 'px';
+                                    
+                                    // Popup'ı göster (SweetAlert yoksa)
+                                    if (!document.querySelector('.swal2-container')) {
+                                        setTimeout(() => popup.classList.add('show'), 200);
+                                    }
+                                    
+                                    // Hata durumunda inputa hafif bir animasyon ekle
+                                    input.animate([
+                                        { transform: 'translateX(-3px)' },
+                                        { transform: 'translateX(3px)' },
+                                        { transform: 'translateX(-3px)' },
+                                        { transform: 'translateX(0)' }
+                                    ], {
+                                        duration: 200,
+                                        iterations: 1
+                                    });
+                                }
+                            } else {
+                                // Inline modda - DOM'a hata mesajı elementi ekle
+                                const errorElement = document.createElement('div');
+                                errorElement.className = 'invalid-feedback';
+                                errorElement.textContent = message;
+                                errorElement.style.display = 'block'; // Görünürlüğü güvence altına al
+                                
+                                // Metin rengini ayarla
+                                if (this.errorColor) {
+                                    errorElement.style.color = this.errorColor;
+                                }
+                                
+                                input.parentNode.insertBefore(errorElement, input.nextElementSibling);
+                            }
+                        }
+                    });
+                    
+                    // Başarılı alanlar için başarı sınıfını ekle
+                    allInputs.forEach(input => {
+                        if (input && input.name && !errors[input.name]) {
+                            // Checkbox veya radio butonlarını kontrol et
+                            const isCheckboxOrRadio = input.type === 'checkbox' || input.type === 'radio';
+                            const isInFormCheckGroup = input.closest('.form-check') !== null;
+                            
+                            // Hata sınıfını kaldır
+                            input.classList.remove(this.errorClass);
+                            
+                            // Success class'ı sadece pop modunda değilse ve checkbox/radio değilse ekle
+                            if (errorDisplayMode !== 'pop' && !isCheckboxOrRadio && !isInFormCheckGroup) {
+                                input.classList.add(this.successClass);
+                            }
+                        }
+                    });
+                }
+
+                // SweetAlert2 ile hataları göster (showErrors değerine bakılmaksızın)
                 if ((this.config.sweetalert2 ?? APP_CONFIG.API.sweetalert2 ?? true) !== false) {
                     Swal.fire({
                         icon: 'error',

@@ -17,7 +17,6 @@ export const integratorConfig = {
       endpoint: '/login', // API endpoint'i
       method: 'POST', // HTTP methodu (GET, POST, PUT, DELETE, vs.)
       preventRedirect: true, // Başarılı istekten sonra yönlendirmeyi engeller
-      validation: true, // validasyon kontrolünü aktifleştir
       sweetalert2: true, // SweetAlert2 kullanımını etkinleştirir false ile console hataları gösterir.
    // tokenKey: 'token', // Token anahtarı (header'da token değeri), tokenName'e göre önceliklidir.
    // tokenName: 'token', // Token adı (localStorage'da token adı, dot notation desteği bulunmaktadır örneğin data.token.tokenName. tokenKey değeri girilirse bu alan gerekli değildir.)
@@ -27,6 +26,14 @@ export const integratorConfig = {
       // -> Örnek: {"data.token": "1234567890"} şeklinde bir yanıt aldığınızda tokenName değerini "data.token" olarak giriniz.
       // -> tokenKey değeri girildiğinde, token değeri header'da Authorization: Bearer tokenKey değeri şeklinde saklanır.
    // clearToken: true, // İstek sonrası token temizleme, eğer true ise tokenName değeri varsa localStorage'da silinir.
+      validation: true, // validasyon kontrolünü aktifleştir
+      validationOptions: { // Input alanları için validasyon görünümü ayarları
+        showErrors: true, // Hata mesajlarının aktif edilmesi.
+        errorClass: 'is-invalid', // Hata sınıfını belirler.
+        successClass: 'is-valid', // Başarı sınıfını belirler.
+        errorDisplayMode: 'inline', // Hata mesajlarının görünümünü belirler. (inline, pop)
+        errorColor: 'red', // Hata mesajlarının rengini belirler.
+      },
       fields: {
         email: {
           rules: ['required', 'email'],
@@ -416,9 +423,11 @@ export const integratorConfig = {
       showConfirmButton: false,
     },
     validation: {
-      showErrors: true,
-      errorClass: 'is-invalid',
-      successClass: 'is-valid',
+      showErrors: true, // Hata mesajlarının aktif edilmesi.
+      errorClass: 'is-invalid', // Hata sınıfını belirler.
+      successClass: 'is-valid', // Başarı sınıfını belirler.
+      errorDisplayMode: 'inline', // Hata mesajlarının görünümünü belirler. (inline, pop)
+      errorColor: 'red', // Hata mesajlarının rengini belirler.
       messages: {
         required: (field) => {
           const messages = {  // Mesajların tanımlanması

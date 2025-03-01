@@ -9,7 +9,7 @@
 - [Dual Package Desteği](#dual-package-desteği)
 - [Detaylı Kullanım](#detaylı-kullanım)
 - [Konfigürasyon](#konfigürasyon)
-- [Validasyon](#validasyon)
+- [Validasyon Mesajları](#validasyon-mesajları)
 - [API Entegrasyonu](#api-entegrasyonu)
 - [Hata Yönetimi](#hata-yonetimi)
 - [Yeni Özellikler](#yeni-özellikler)
@@ -240,7 +240,7 @@ Veri doğrulama kuralları ile:
       redirect: '/dashboard',
       message: 'İşlem başarılı'
     },
-    // Güvenlik ayarları: Ek güvenlik header’ları otomatik olarak eklenir
+    // Güvenlik ayarları: Ek güvenlik header'ları otomatik olarak eklenir
     security: {
       enableSecurityHeaders: true,
       headers: {
@@ -286,6 +286,8 @@ Veri doğrulama kuralları ile:
       showErrors: true,
       errorClass: 'is-invalid',
       successClass: 'is-valid',
+      errorDisplayMode: 'pop',  // 'inline' (default) veya 'pop'
+      errorColor: '#dc3545',    // Hata metninin ve popup'ın rengi
       messages: {
         required: (field) => {
           const messages = {
@@ -389,6 +391,90 @@ API Form Integrator aşağıdaki validasyon kurallarını destekler ve her biri 
 - `mimes:ext1,ext2`: Belirli dosya uzantıları
 - `dimensions:params`: Resim boyutları kontrolü
 
+### Hata Mesajı Gösterim Modları - ✨ Yeni Özellik
+
+Form doğrulama hatalarının gösterim şeklini özelleştirmek için `errorDisplayMode` seçeneği eklenmiştir. Bu seçenek, hata mesajlarının nasıl gösterileceğini belirleyerek kullanıcı deneyimini iyileştirir.
+
+#### Kullanılabilir Modlar
+
+- `inline`: Hata mesajları form elemanlarının altında gösterilir (geleneksel yöntem). Ayrıca başarılı validasyon durumunda form elemanlarına yeşil kenarlık ve onay işareti ekler.
+- `pop`: Hata mesajları, form elemanlarına hover olunduğunda veya odaklanıldığında popup olarak gösterilir. Pop modu sayfa düzenini bozmadan kullanıcıya görsel geri bildirim sağlar.
+
+#### Kullanım Örneği
+
+```javascript
+const LoginForm = new FormFactory().createForm('LOGIN', {
+    selector: '#loginForm',
+    endpoint: '/login',
+    method: 'POST',
+    validationOptions: {
+        errorDisplayMode: 'pop',  // 'inline' (default) veya 'pop'
+        errorClass: 'is-invalid', // Hata sınıfı
+        successClass: 'is-valid', // Başarı sınıfı
+        errorColor: '#dc3545',    // Hata metninin ve popup'ın rengi
+        showErrors: true
+    },
+    fields: {
+        email: { 
+          rules: ['required', 'email'],
+          messages: {
+            required: 'Email alanı zorunludur.',
+            email: 'Geçerli bir email adresi giriniz.'
+          }
+         },
+        password: { 
+          rules: ['required', 'min:6'],
+          messages: {
+            required: 'Şifre alanı zorunludur.',
+            min: 'Şifre en az 6 karakter olmalıdır.'
+          }
+        }
+    }
+});
+```
+
+#### Global Ayar
+
+Tüm formlar için varsayılan gösterim modunu ve diğer validasyon ayarlarını değiştirmek için `integrator.config.js` içinde validation bölümünde `showErrors`, `errorClass`, `successClass`, `errorDisplayMode` ve `errorColor` ayarlarını değiştiriniz. Bu ayarlar tüm formlar için geçerlidir.
+
+```javascript
+   UI: {
+        validation: {
+            showErrors: true,
+            errorClass: 'is-invalid',
+            successClass: 'is-valid',
+            errorDisplayMode: 'inline', // 'inline' veya 'pop'
+            errorColor: '#dc3545',
+        }
+    }
+```
+>**Not:** Eğer form içerisinde `validationOptions` objesi ile validasyon ayarları tanımlanmışsa, bu ayarlar form için geçerli olur ve global ayarlar göz ardı edilir.
+
+#### Pop Modu Özellikleri
+
+Pop modu, form alanlarının üzerinde beliren animasyonlu bildirimler sunar:
+
+- **Etkileşimli Gösterim**: Hata mesajları kullanıcı form alanının üzerine geldiğinde veya odaklandığında görünür
+- **Sayfa Düzenini Koruma**: Popup şeklinde gösterildiği için sayfa akışını ve hizalamayı bozmaz
+- **Estetik Tasarım**: Yumuşak gölgeler ve animasyonlarla modern bir görünüm sağlar
+- **Mobil Uyumluluk**: Dokunmatik cihazlarda da sorunsuz çalışır
+- **Responsive Davranış**: Ekran boyutu değiştiğinde popup konumları otomatik olarak güncellenir
+- **UI Uyumluluğu**: SweetAlert2 bildirimleriyle çakışmayı önler, modal pencereler açıldığında otomatik gizlenir
+- **Minimal Görsel Etki**: Form elemanlarının görsel stillerini bozmadan hata durumunu belirtir
+
+#### Pop Modu Nasıl Çalışır?
+
+Pop modu, hata durumlarını göstermek için DOM'a geçici baloncuk elementleri ekler:
+
+1. Hata tespit edildiğinde, ilgili form alanı için bir popup baloncuğu oluşturulur
+2. Kullanıcı form alanına hover olduğunda veya odaklandığında, hata mesajı görünür hale gelir
+3. Kullanıcı ayrıldığında veya odağı kaybettiğinde, hata mesajı gizlenir
+4. Form alanları doğru şekilde doldurulduğunda, popup elementleri otomatik olarak kaldırılır
+5. Ekran boyutu değiştiğinde, popup konumları otomatik olarak güncellenir
+6. SweetAlert2 bildirimleri gösterildiğinde popup'lar otomatik olarak gizlenir
+
+Bu yaklaşım, sayfa akışını ve hizalamasını bozmadan kullanıcıya görsel geri bildirim sağlar. Özellikle sıkışık form düzenlerinde, yerleşim düzeni sorunlarını önlemek için idealdir.
+
 ### Helper Fonksiyonlar
 ```javascript
   // Form konfigürasyonunu alır
@@ -424,7 +510,7 @@ Global hata yönetimi, API isteklerinde otomatik olarak uygulanır:
 ## 💡 Yeni Özellikler
 
 - **Doğrudan API Çağrıları:**  
-  Form bazlı kullanımın dışında, sayfa yüklendiğinde veya özel durumlarda API isteği gerçekleştirmek için doğrudan ApiService üzerinden istek yapabilirsiniz. Bu sayede global hata yönetimi, CSRF koruması ve güvenlik header’ları otomatik olarak uygulanır.
+  Form bazlı kullanımın dışında, sayfa yüklendiğinde veya özel durumlarda API isteği gerçekleştirmek için doğrudan ApiService üzerinden istek yapabilirsiniz. Bu sayede global hata yönetimi, CSRF koruması ve güvenlik header'ları otomatik olarak uygulanır.
   
 - **Derin Merge İşlemi:**  
   Konfigürasyon güncellemelerinde `mergeDeep` fonksiyonu sayesinde mevcut ayarlar esnek biçimde güncellenebilir.
@@ -433,13 +519,23 @@ Global hata yönetimi, API isteklerinde otomatik olarak uygulanır:
   `npx create-integrator` komutu, proje dizininizde otomatik olarak `integrator.config.js` şablonunu oluşturur. Böylece formlar, API ve UI ayarlarınızı kolayca yapılandırabilirsiniz.
   
 - **Güvenlik Ayarları:**  
-  API isteklerinde ek güvenlik sağlamak amacıyla, `security` altında tanımlı header’lar otomatik olarak eklenir.
+  API isteklerinde ek güvenlik sağlamak amacıyla, `security` altında tanımlı header'lar otomatik olarak eklenir.
   
 - **CSRF Token Yönetimi:**  
   Form gönderimleri sırasında, `csrf` ayarları sayesinde otomatik CSRF token tespiti ve güncelleme yapılır.
   
 - **Rate Limiting:**  
-  API isteklerinin sıklığını kontrol etmek için, `rateLimiting` konfigürasyonu ile token-bucket veya fixed-window stratejileri uygulanabilir. İsteğe bağlı olarak limit bilgileri header’lar üzerinden de iletilebilir.
+  API isteklerinin sıklığını kontrol etmek için, `rateLimiting` konfigürasyonu ile token-bucket veya fixed-window stratejileri uygulanabilir. İsteğe bağlı olarak limit bilgileri header'lar üzerinden de iletilebilir.
+
+- **Doğrulama Mesajları:**  
+  Validasyon kurallarına özel mesajlar tanımlanabilir.
+
+- **Doğrulama Ayarları:**  
+  - `showErrors`: Hata mesajlarının görünümünü belirler.
+  - `errorClass`: Hata sınıfını belirler.
+  - `successClass`: Başarı sınıfını belirler.
+  - `errorDisplayMode`: Hata mesajlarının görünümünü belirler.
+  - `errorColor`: Hata mesajlarının rengini belirler.
 
 ## 🔍 Örnekler
 
@@ -537,8 +633,16 @@ hızlı konfig ayarlarını (quick config) merge edip dinamik olarak form sını
      sweetalert2: true,
      tokenName: 'data.auth.access_token',
      fields: {
-         email: { rules: ['required', 'email'] },
-         password: { rules: ['required', 'min:6'] }
+         email: { rules: ['required', 'email'],
+          messages: {
+            required: 'Email alanı zorunludur.',
+            email: 'Geçerli bir email adresi giriniz.'
+          }
+         },
+         password: { rules: ['required', 'min:6'],
+          messages: {
+            required: 'Şifre alanı zorunludur.',
+            min: 'Şifre en az 6 karakter olmalıdır.' } }
      },
      actions: {
         onSubmit: (formData) => {
@@ -622,8 +726,6 @@ console.log(mergedConfig);
 ```
 
 >**Daha detaylı temel bilgiler için [Wiki](https://github.com/RhymeRone/api-form-integrator/wiki) 'yi ziyaret ediniz.**
-
-
 
 ## ❓ SSS
 
