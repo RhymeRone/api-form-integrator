@@ -62,11 +62,14 @@
 
 ### CDN ile Kullanım
 Paketi doğrudan tarayıcınızda kullanmak için:
+
 ```html
-  <script src="https://unpkg.com/axios/dist/axios.min.js"></script> // Axios Bağımlılığı Yüklenmesi Gerekiyor
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script> // SweetAlert2 Bağımlılığı Yüklenmesi Gerekiyor
+  <script src="https://unpkg.com/axios/dist/axios.min.js"></script> 
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="https://cdn.jsdelivr.net/npm/api-form-integrator@latest/dist/integrator.cdn.js"></script>
 ```
+
+> **Not:** Axios ve SweetAlert2 bağımlılıklarının yüklenmesi gerekiyor.
 
 ## 🚀 Hızlı Başlangıç
 
