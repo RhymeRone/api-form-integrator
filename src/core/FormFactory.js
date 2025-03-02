@@ -132,8 +132,10 @@ export default class FormFactory {
             async handleSubmit(e) {
                 e.preventDefault();
 
-                // Form verisi al
-                const formData = this.getFormData();
+                // Form verisi al - dosya varsa FormData kullan
+                let formData = this.getFormData(this.config.useFormData ?? false);
+
+                let isFormData = formData instanceof FormData;
 
                 // Validasyon kontrolü
                 if (this.config.validation ?? true) {
@@ -147,7 +149,7 @@ export default class FormFactory {
                 // onSubmit callback
                 if (this.config.actions?.onSubmit && typeof this.config.actions.onSubmit === 'function') {
                     let modifiedData = this.config.actions.onSubmit(formData);
-                    if (modifiedData !== undefined) {
+                    if (!isFormData && modifiedData !== undefined) {
                         formData = modifiedData;
                     }
                 }
@@ -156,6 +158,11 @@ export default class FormFactory {
                     // Endpoint ve method varsa isteği gönder
                     if (this.config.endpoint && this.config.method) {
                         const apiService = new ApiService(this.apiConfig);
+
+                        // const headers = {};
+                        // if (!isFormData) {
+                        //     headers['Content-Type'] = 'application/json';
+                        // }
 
                         // config'i isteğe ekle
                         await apiService.request({

@@ -1,7 +1,7 @@
 import { getUiConfig, getFormConfig } from '../config/default.config.js';
 
 class BaseForm {
-    constructor(formSelector, formConfig = {} ) {
+    constructor(formSelector, formConfig = {}) {
         this.form = document.querySelector(formSelector);
         this.formConfig = formConfig;
         this.inputs = {};
@@ -26,10 +26,10 @@ class BaseForm {
             if (!document.getElementById('api-form-pop-base-style')) {
                 const styleElement = document.createElement('style');
                 styleElement.id = 'api-form-pop-base-style';
-                
+
                 // errorColor kullanarak popup rengini belirle
                 const popupBgColor = this.errorColor || '#dc3545';
-                
+
                 styleElement.textContent = `
                     .api-form-error-popup {
                         position: absolute;
@@ -79,18 +79,18 @@ class BaseForm {
                     }
                 `;
                 document.head.appendChild(styleElement);
-                
+
                 // Ekran boyutu değiştiğinde popup pozisyonlarını güncelle
                 window.addEventListener('resize', () => {
                     // Tüm mevcut popup'ları bul
                     const popups = document.querySelectorAll('.api-form-error-popup');
-                    
+
                     // Her popup için ilgili input'u bul ve konumu güncelle
                     popups.forEach(popup => {
                         // Popup ID'sinden alan adını çıkar (error-popup-{fieldName})
                         const fieldName = popup.id.replace('error-popup-', '');
                         const input = document.querySelector(`[name="${fieldName}"]`);
-                        
+
                         if (input) {
                             // Input pozisyonunu al ve popup'u konumlandır
                             const inputRect = input.getBoundingClientRect();
@@ -197,12 +197,12 @@ class BaseForm {
                 input.addEventListener('input', () => {
                     this.validateField(input.name);
                 });
-                
+
                 // Ayrıca change ve blur olaylarını da dinleyelim
                 input.addEventListener('change', () => {
                     this.validateField(input.name);
                 });
-                
+
                 input.addEventListener('blur', () => {
                     this.validateField(input.name);
                 });
@@ -220,12 +220,62 @@ class BaseForm {
         });
     }
 
-    getFormData() {
-        const data = {};
-        Object.entries(this.inputs).forEach(([name, input]) => {
-            data[name] = input.value.trim();
-        });
-        return data;
+    // getFormData() {
+    //     const data = {};
+    //     Object.entries(this.inputs).forEach(([name, input]) => {
+    //         data[name] = input.value.trim();
+    //     });
+    //     return data;
+    // }
+    /**
+ * Form verilerini toplar ve döndürür
+ * @param {boolean} useFormData - Dosya yüklemesi için FormData kullanılsın mı?
+ * @return {Object|FormData} - Form verileri
+ */
+    getFormData(useFormData) {
+
+        if (Object.keys(this.inputs).length === 0) {
+            return useFormData ? new FormData() : {};
+        }
+        // Form içinde dosya alanı var mı kontrol et
+        const hasFileInputs = Object.values(this.inputs).some(input =>
+            input.type === 'file' && input.files && input.files.length > 0
+        );
+
+        // Dosya varsa veya açıkça isteniyorsa FormData kullan
+        if (hasFileInputs || useFormData === true) {
+            const formData = new FormData();
+
+            Object.entries(this.inputs).forEach(([name, input]) => {
+                // Dosya input'ları için
+                if (input.type === 'file' && input.files && input.files.length > 0) {
+                    formData.append(name, input.files[0]);
+                }
+                // Checkbox ve radio için
+                else if ((input.type === 'checkbox' || input.type === 'radio') && !input.checked) {
+                    // Seçili olmayan checkbox/radio için değer ekleme
+                    return;
+                }
+                // Diğer tüm input tipleri için
+                else {
+                    formData.append(name, input.value.trim());
+                }
+            });
+
+            return formData;
+        }
+        // Normal JSON nesnesi (mevcut davranış)
+        else {
+            const data = {};
+            Object.entries(this.inputs).forEach(([name, input]) => {
+                // Checkbox ve radio kontrolü
+                if ((input.type === 'checkbox' || input.type === 'radio') && !input.checked) {
+                    return;
+                }
+                data[name] = input.value.trim();
+            });
+            return data;
+        }
     }
 
     setRules(rules) {
@@ -244,7 +294,7 @@ class BaseForm {
         input.classList.remove(this.errorClass);
         input.classList.remove(this.successClass);
         input.classList.remove('api-form-validation-error');
-        
+
         // Sadece inline mod için mesaj elementini kaldır
         if (this.errorDisplayMode !== 'pop') {
             const nextElement = input.nextElementSibling;
@@ -265,7 +315,7 @@ class BaseForm {
             // Hata sınıfını ekle (eğer showErrors true ise ve checkbox/radio değilse)
             if (this.showErrors && this.errorClass && !isCheckboxOrRadio) {
                 input.classList.add(this.errorClass);
-                
+
                 // Pop modunda hata gösterimi
                 if (this.errorDisplayMode === 'pop') {
                     input.classList.add('api-form-validation-error');
@@ -275,7 +325,7 @@ class BaseForm {
                     this._showInlineError(input, requiredRule.message);
                 }
             }
-            
+
             return false;
         }
 
@@ -307,7 +357,7 @@ class BaseForm {
                         // Hata sınıfını ekle (eğer showErrors true ise ve checkbox/radio değilse)
                         if (this.showErrors && this.errorClass && !isCheckboxOrRadio) {
                             input.classList.add(this.errorClass);
-                            
+
                             if (this.errorDisplayMode === 'pop') {
                                 input.classList.add('api-form-validation-error');
                                 this._showPopupError(input, fieldName, regexRule.message);
@@ -316,7 +366,7 @@ class BaseForm {
                                 this._showInlineError(input, regexRule.message);
                             }
                         }
-                        
+
                         return false;
                     }
                 } catch (e) {
@@ -333,7 +383,7 @@ class BaseForm {
                         // Hata sınıfını ekle (eğer showErrors true ise ve checkbox/radio değilse)
                         if (this.showErrors && this.errorClass && !isCheckboxOrRadio) {
                             input.classList.add(this.errorClass);
-                            
+
                             if (this.errorDisplayMode === 'pop') {
                                 input.classList.add('api-form-validation-error');
                                 this._showPopupError(input, fieldName, rule.message);
@@ -342,7 +392,7 @@ class BaseForm {
                                 this._showInlineError(input, rule.message);
                             }
                         }
-                        
+
                         return false;
                     }
                 }
@@ -351,13 +401,13 @@ class BaseForm {
 
         // Validasyon başarılı, gerekirse success sınıfını ekle
         delete this.validationErrors[fieldName];
-        
+
         // Pop modunda success class'ı ekleme, inline modda ekle
         // Ayrıca checkbox ve radio butonlar için de ekleme
         if (this.showErrors && this.successClass && this.errorDisplayMode !== 'pop' && !isCheckboxOrRadio && !isInFormCheckGroup) {
             input.classList.add(this.successClass);
         }
-        
+
         // Validasyon başarılı olunca popup'ı tamamen DOM'dan kaldır
         if (this.errorDisplayMode === 'pop') {
             const popup = document.getElementById(`error-popup-${fieldName}`);
@@ -365,7 +415,7 @@ class BaseForm {
                 popup.remove(); // DOM'dan tamamen kaldır
             }
         }
-        
+
         return true;
     }
 
@@ -373,14 +423,14 @@ class BaseForm {
     _showPopupError(input, fieldName, message) {
         // Mevcut popup'ı kontrol et
         let popup = document.getElementById(`error-popup-${fieldName}`);
-        
+
         if (!popup) {
             // Popup yoksa yeni oluştur
             popup = document.createElement('div');
             popup.id = `error-popup-${fieldName}`;
             popup.className = 'api-form-error-popup';
             document.body.appendChild(popup);
-            
+
             // Event listener'ları ekle
             const hidePopup = () => popup.classList.remove('show');
             const showPopup = () => {
@@ -394,17 +444,17 @@ class BaseForm {
                 }
                 popup.classList.add('show');
             };
-            
+
             // Event listener'ları ekle
             input.addEventListener('mouseenter', showPopup);
             input.addEventListener('mouseleave', hidePopup);
             input.addEventListener('focus', showPopup);
             input.addEventListener('blur', hidePopup);
         }
-        
+
         // Popup içeriğini ve konumunu güncelle
         popup.textContent = message;
-        
+
         // errorColor kullanarak popup rengini güncelle
         if (this.errorColor) {
             popup.style.backgroundColor = this.errorColor;
@@ -423,12 +473,12 @@ class BaseForm {
             }
             styleEl.textContent = afterStyle;
         }
-        
+
         const inputRect = input.getBoundingClientRect();
         popup.style.position = 'fixed';
         popup.style.top = (inputRect.top - popup.offsetHeight - 10) + 'px';
         popup.style.left = inputRect.left + 'px';
-        
+
         // İlk gösterim için kısa gecikme
         setTimeout(() => {
             if (!document.querySelector('.swal2-container') && input.classList.contains(this.errorClass)) {
@@ -436,43 +486,43 @@ class BaseForm {
             }
         }, 100);
     }
-    
+
     // Inline hata mesajı gösterme için yardımcı metod
     _showInlineError(input, message) {
         const errorElement = document.createElement('div');
         errorElement.className = 'invalid-feedback';
         errorElement.textContent = message;
         errorElement.style.display = 'block';
-        
+
         if (this.errorColor) {
             errorElement.style.color = this.errorColor;
         }
-        
+
         input.parentNode.insertBefore(errorElement, input.nextElementSibling);
     }
 
     async validateForm() {
         this.validationErrors = {};
-        
+
         // Tüm inputları temizleyelim
         const allInputs = Object.values(this.inputs);
         allInputs.forEach(input => {
             if (!input) return;
-            
+
             // Radio veya checkbox kontrol et
             const isCheckboxOrRadio = input.type === 'checkbox' || input.type === 'radio';
-            
+
             // Tüm sınıfları kaldır
             input.classList.remove(this.errorClass);
             input.classList.remove(this.successClass);
             input.classList.remove('api-form-validation-error');
-            
+
             // Inline moddaki hata mesajlarını kaldır
             const errorElement = input.nextElementSibling;
             if (errorElement && errorElement.className === 'invalid-feedback') {
                 errorElement.remove();
             }
-            
+
             // Pop modundaki popup'ları tamamen kaldır
             if (this.errorDisplayMode === 'pop' && input.name) {
                 const popup = document.getElementById(`error-popup-${input.name}`);
@@ -481,7 +531,7 @@ class BaseForm {
                 }
             }
         });
-        
+
         // Tüm alanları kontrol et
         for (const fieldName of Object.keys(this.rules)) {
             const input = this.inputs[fieldName];
@@ -502,7 +552,7 @@ class BaseForm {
                 // Hata sınıfını ekle (eğer showErrors true ise ve checkbox/radio değilse)
                 if (this.showErrors && this.errorClass && !isCheckboxOrRadio) {
                     input.classList.add(this.errorClass);
-                    
+
                     // Pop modunda hata gösterimi
                     if (this.errorDisplayMode === 'pop') {
                         input.classList.add('api-form-validation-error');
@@ -543,7 +593,7 @@ class BaseForm {
                             // Hata gösterimi (checkbox/radio kontrolü ekle)
                             if (this.showErrors && this.errorClass && !isCheckboxOrRadio) {
                                 input.classList.add(this.errorClass);
-                                
+
                                 if (this.errorDisplayMode === 'pop') {
                                     input.classList.add('api-form-validation-error');
                                     this._showPopupError(input, fieldName, regexRule.message);
@@ -569,7 +619,7 @@ class BaseForm {
                             // Hata gösterimi (checkbox/radio kontrolü ekle)
                             if (this.showErrors && this.errorClass && !isCheckboxOrRadio) {
                                 input.classList.add(this.errorClass);
-                                
+
                                 if (this.errorDisplayMode === 'pop') {
                                     input.classList.add('api-form-validation-error');
                                     this._showPopupError(input, fieldName, rule.message);
@@ -590,11 +640,11 @@ class BaseForm {
         for (const fieldName of Object.keys(this.rules)) {
             const input = this.inputs[fieldName];
             if (!input) continue;
-            
+
             // Radio veya checkbox kontrol et
             const isCheckboxOrRadio = input.type === 'checkbox' || input.type === 'radio';
             const isInFormCheckGroup = input.closest('.form-check') !== null;
-            
+
             // Eğer bu alan için hata yoksa ve success class ekleme koşulları sağlanıyorsa
             if (!this.validationErrors[fieldName] && this.showErrors && this.successClass) {
                 // Hem pop modunda hem de radio/checkbox için success class ekleme

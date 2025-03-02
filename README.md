@@ -152,6 +152,7 @@ Veri doğrulama kuralları ile:
     selector: '#validatedForm',
     endpoint: '/api/data',
     method: 'POST',
+    // Axios ayarları da buradan yapılabilir. (headers, timeout, etc.)
     fields: {
       name: { rules: ['required', 'min:3'] },
       email: { rules: ['required', 'email'] }
@@ -182,9 +183,18 @@ Veri doğrulama kuralları ile:
     selector: '#formId',       // Form elementinin CSS seçicisi (zorunlu)
     endpoint: '/api/path',     // API endpoint'i (zorunlu)
     method: 'POST',            // HTTP metodu (GET, POST, PUT, DELETE, PATCH)
+    useFormData: true,         // Form verilerini FormData olarak göndermeye zorlar.
+    // Axios ayarları da buradan yapılabilir. (headers, timeout, etc.)
     validation: true,          // Validasyon kontrolü
+    validationOptions: {
+      showErrors: true,         // Hata mesajlarını gösterir
+      errorClass: 'is-invalid', // Hata sınıfı
+      successClass: 'is-valid', // Başarı sınıfı
+      errorDisplayMode: 'pop', // Hata mesajlarını popup olarak gösterir (inline, pop)
+      errorColor: '#dc3545',    // Hata mesajlarının rengi
+    },
     preventRedirect: true,     // Otomatik yönlendirmeyi engeller
-    sweetalert2: true,        // SweetAlert2 kullanımı
+    sweetalert2: true,        // SweetAlert2 kullanımı (false yaparsanız Console.log ile yanıt alırsınız)
     tokenName: 'data.auth.access_token', // tokenin adı
     tokenKey: 'data.auth.access_token', // tokenin key'i
     clearToken: true, // token temizleme

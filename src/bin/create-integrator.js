@@ -16,6 +16,8 @@ export const integratorConfig = {
       selector: '#loginForm', // Formun DOM'daki seçicisi (ID, class, vs.)
       endpoint: '/login', // API endpoint'i
       method: 'POST', // HTTP methodu (GET, POST, PUT, DELETE, vs.)
+      // Ayrıca tüm axios ayarlarını (url, timeout, headers, vs.) buraya da ekleyebilirsiniz 
+      useFormData: true, // Form verilerini FormData olarak göndermeye zorlar.
       preventRedirect: true, // Başarılı istekten sonra yönlendirmeyi engeller
       sweetalert2: true, // SweetAlert2 kullanımını etkinleştirir false ile console hataları gösterir.
    // tokenKey: 'token', // Token anahtarı (header'da token değeri), tokenName'e göre önceliklidir.
