@@ -172,6 +172,12 @@ export default class FormFactory {
 
             showValidationErrors(errors) {
                 if (!errors || Object.keys(errors).length === 0) return false;
+                
+                // Mevcut tüm popup'ları temizle
+                document.querySelectorAll('.api-form-error-popup').forEach(popup => {
+                    popup.classList.remove('show');
+                });
+                
                 // Hata mesajlarını topla - bu her zaman yapılacak
                 const errorMessages = [];
                 
@@ -289,6 +295,11 @@ export default class FormFactory {
                                     // Popup'ı göster (SweetAlert yoksa)
                                     if (!document.querySelector('.swal2-container')) {
                                         setTimeout(() => popup.classList.add('show'), 200);
+                                        
+                                        // Otomatik kapanma için zamanlayıcı ekle (3 saniye sonra)
+                                        setTimeout(() => {
+                                            popup.classList.remove('show');
+                                        }, 2000);
                                     }
                                     
                                     // Hata durumunda inputa hafif bir animasyon ekle
