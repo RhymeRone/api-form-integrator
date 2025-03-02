@@ -315,6 +315,18 @@ export default class FormFactory {
                                 }
                             } else {
                                 // Inline modda - DOM'a hata mesajı elementi ekle
+                                
+                                // Radyo butonu ise hata mesajı ekleme
+                                if (isCheckboxOrRadio) {
+                                    return;
+                                }
+                                
+                                // Önce mevcut hata mesajını kaldır
+                                const existingError = input.nextElementSibling;
+                                if (existingError && existingError.className === 'invalid-feedback') {
+                                    existingError.remove();
+                                }
+                                
                                 const errorElement = document.createElement('div');
                                 errorElement.className = 'invalid-feedback';
                                 errorElement.textContent = message;
