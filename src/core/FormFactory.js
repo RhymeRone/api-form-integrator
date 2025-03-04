@@ -148,9 +148,10 @@ export default class FormFactory {
 
                 // onSubmit callback
                 if (this.config.actions?.onSubmit && typeof this.config.actions.onSubmit === 'function') {
-                    let modifiedData = this.config.actions.onSubmit(formData);
-                    if (!isFormData && modifiedData !== undefined) {
-                        formData = modifiedData;
+                    try {
+                        this.config.actions.onSubmit(formData, this.config);
+                    } catch (error) {
+                        console.error('onSubmit hatası:', error);
                     }
                 }
 

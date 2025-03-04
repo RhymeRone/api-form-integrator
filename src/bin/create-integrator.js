@@ -319,8 +319,8 @@ export const integratorConfig = {
         }
       },*/
       actions: {
-        // onSubmit callback desteği: Form gönderilmeden önce çalışır.
-        onSubmit: (formData) => { console.log(formData) }, // Form verilerini konsola yazdır
+        // onSubmit callback desteği: Form gönderilmeden önce çalışır. Form ve config verileri üzerinde submit öncesi işlem yapılabilir.
+        onSubmit: (formData, config) => { console.log(formData, config) }, // Form ve config verilerini konsola yazdır
         // onSuccess callback desteği: API başarılı yanıt verdiğinde çalışır.
         onSuccess: (response) => { console.log(response); return true }, // true döndürürse default işlemler çalışır.
         // onError callback desteği: API hata döndürdüğünde çalışır.

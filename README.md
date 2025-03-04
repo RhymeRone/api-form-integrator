@@ -167,7 +167,9 @@ Veri doğrulama kuralları ile:
 Özel callback fonksiyonları:
 - **onSubmit:** Form gönderilmeden önce veriyi manipüle eder.
 ```javascript
-  onSubmit: (formData) => ({ ...formData, email: formData.email.toLowerCase() })
+  onSubmit: (formData, config) => {
+    config.endpoint = config.endpoint.replace('{id}', formData.id);
+  }
 ```
 - **onSuccess:** API başarılı yanıt verdiğinde çalışır.
 ```javascript
@@ -205,9 +207,11 @@ Veri doğrulama kuralları ile:
       fieldName: { rules: ['required', 'email', 'min:6'] }
     },
     actions: {
-      onSubmit: (formData) => {
+      onSubmit: (formData, config) => {
         // isteğe bağlı verileri işleme
-        return formData;
+        formData.email = formData.email.toLowerCase();
+        config.endpoint = '/api/users';
+        config.method = 'POST';
       },
       onSuccess: (response) => {
         // Başarılı isteklerde çalışacak fonksiyon
@@ -658,9 +662,10 @@ hızlı konfig ayarlarını (quick config) merge edip dinamik olarak form sını
             min: 'Şifre en az 6 karakter olmalıdır.' } }
      },
      actions: {
-        onSubmit: (formData) => {
+        onSubmit: (formData, config) => {
             // isteğe bağlı verileri işleme
-            return formData;
+            formData.email = formData.email.toLowerCase();
+            config.method = 'POST'; // isteğe bağlı method değişimi
         },
         onSuccess: (response) => { console.log("Giriş başarılı!", response); }, // Başarılı isteklerde çalışacak fonksiyon
         onError: (error) => { console.error("Giriş hatası", error); }, // Hata durumunda çalışacak fonksiyon
