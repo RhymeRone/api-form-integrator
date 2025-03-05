@@ -156,6 +156,7 @@ export default class FormFactory {
                 }
 
                 try {
+                    this.resetFormValidationState(); // Validation state'i temizle
                     // Endpoint ve method varsa isteği gönder
                     if (this.config.endpoint && this.config.method) {
                         const apiService = new ApiService(this.apiConfig);
@@ -180,15 +181,15 @@ export default class FormFactory {
 
             showValidationErrors(errors) {
                 if (!errors || Object.keys(errors).length === 0) return false;
-                
+
                 // Mevcut tüm popup'ları temizle
                 document.querySelectorAll('.api-form-error-popup').forEach(popup => {
                     popup.classList.remove('show');
                 });
-                
+
                 // Hata mesajlarını topla - bu her zaman yapılacak
                 const errorMessages = [];
-                
+
                 // Tüm hata mesajlarını topla (showErrors değerinden bağımsız)
                 Object.entries(errors).forEach(([field, message]) => {
                     // Hata mesajlarını her zaman topla
@@ -197,19 +198,19 @@ export default class FormFactory {
 
                 // Hata gösterim modunu al
                 const errorDisplayMode = this.config?.validationOptions?.errorDisplayMode ?? APP_CONFIG.UI.validation.errorDisplayMode ?? 'inline';
-                
+
                 // DOM manipülasyonu sadece this.showErrors true ise yapılacak
                 // Not: this.showErrors değişkeni BaseForm'dan gelir ve form konfigürasyonuna göre belirlenir
                 if (this.showErrors) {
                     // Tüm input alanlarını bul
                     const allInputs = Object.values(this.inputs);
-                    
+
                     // Önce tüm hata ve başarı sınıflarını temizle
                     allInputs.forEach(input => {
                         if (input) {
                             input.classList.remove(this.errorClass);
                             input.classList.remove(this.successClass);
-                            
+
                             // Inputun yanındaki hata mesajı elementini kaldır (inline mod kullanıldıysa)
                             const errorElement = input.nextElementSibling;
                             if (errorElement && errorElement.className === 'invalid-feedback') {
@@ -217,7 +218,7 @@ export default class FormFactory {
                             }
                         }
                     });
-                    
+
                     // DOM'a hata göstergelerini ekle (showErrors true ise)
                     Object.entries(errors).forEach(([field, message]) => {
                         // Form alanına hata sınıfı ekle
@@ -225,12 +226,12 @@ export default class FormFactory {
                         if (input) {
                             // Radio veya checkbox kontrol et
                             const isCheckboxOrRadio = input.type === 'checkbox' || input.type === 'radio';
-                            
+
                             // Hata sınıfını ekle (checkbox/radio değilse)
                             if (!isCheckboxOrRadio) {
                                 input.classList.add(this.errorClass);
                             }
-                            
+
                             // Hata gösterim moduna göre işlem yap
                             if (errorDisplayMode === 'pop') {
                                 // Önce mevcut hata göstergesini temizle
@@ -238,11 +239,11 @@ export default class FormFactory {
                                 if (existingError && existingError.className === 'invalid-feedback') {
                                     existingError.remove();
                                 }
-                                
+
                                 if (!isCheckboxOrRadio) {
                                     // DOM tabanlı popup yaklaşımı - sadece checkbox/radio değilse
                                     input.classList.add('api-form-validation-error');
-                                    
+
                                     // Mevcut popup'ı kontrol et
                                     let popup = document.getElementById(`error-popup-${field}`);
                                     if (!popup) {
@@ -251,7 +252,7 @@ export default class FormFactory {
                                         popup.id = `error-popup-${field}`;
                                         popup.className = 'api-form-error-popup';
                                         document.body.appendChild(popup);
-                                        
+
                                         // Event listener'ları ekle
                                         const hidePopup = () => popup.classList.remove('show');
                                         const showPopup = () => {
@@ -265,17 +266,17 @@ export default class FormFactory {
                                             }
                                             popup.classList.add('show');
                                         };
-                                        
+
                                         // Sadece gerekli event'leri ekle
                                         input.addEventListener('mouseenter', showPopup);
                                         input.addEventListener('mouseleave', hidePopup);
                                         input.addEventListener('focus', showPopup);
                                         input.addEventListener('blur', hidePopup);
                                     }
-                                    
+
                                     // Popup içeriğini ve konumunu güncelle
                                     popup.textContent = message;
-                                    
+
                                     // errorColor kullanarak popup rengini güncelle
                                     if (this.errorColor) {
                                         popup.style.backgroundColor = this.errorColor;
@@ -294,22 +295,22 @@ export default class FormFactory {
                                         }
                                         styleEl.textContent = afterStyle;
                                     }
-                                    
+
                                     const inputRect = input.getBoundingClientRect();
                                     popup.style.position = 'fixed';
                                     popup.style.top = (inputRect.top - popup.offsetHeight - 10) + 'px';
                                     popup.style.left = inputRect.left + 'px';
-                                    
+
                                     // Popup'ı göster (SweetAlert yoksa)
                                     if (!document.querySelector('.swal2-container')) {
                                         setTimeout(() => popup.classList.add('show'), 200);
-                                        
+
                                         // Otomatik kapanma için zamanlayıcı ekle (3 saniye sonra)
                                         setTimeout(() => {
                                             popup.classList.remove('show');
                                         }, 2000);
                                     }
-                                    
+
                                     // Hata durumunda inputa hafif bir animasyon ekle
                                     input.animate([
                                         { transform: 'translateX(-3px)' },
@@ -323,43 +324,43 @@ export default class FormFactory {
                                 }
                             } else {
                                 // Inline modda - DOM'a hata mesajı elementi ekle
-                                
+
                                 // Radyo butonu ise hata mesajı ekleme
                                 if (isCheckboxOrRadio) {
                                     return;
                                 }
-                                
+
                                 // Önce mevcut hata mesajını kaldır
                                 const existingError = input.nextElementSibling;
                                 if (existingError && existingError.className === 'invalid-feedback') {
                                     existingError.remove();
                                 }
-                                
+
                                 const errorElement = document.createElement('div');
                                 errorElement.className = 'invalid-feedback';
                                 errorElement.textContent = message;
                                 errorElement.style.display = 'block'; // Görünürlüğü güvence altına al
-                                
+
                                 // Metin rengini ayarla
                                 if (this.errorColor) {
                                     errorElement.style.color = this.errorColor;
                                 }
-                                
+
                                 input.parentNode.insertBefore(errorElement, input.nextElementSibling);
                             }
                         }
                     });
-                    
+
                     // Başarılı alanlar için başarı sınıfını ekle
                     allInputs.forEach(input => {
                         if (input && input.name && !errors[input.name]) {
                             // Checkbox veya radio butonlarını kontrol et
                             const isCheckboxOrRadio = input.type === 'checkbox' || input.type === 'radio';
                             const isInFormCheckGroup = input.closest('.form-check') !== null;
-                            
+
                             // Hata sınıfını kaldır
                             input.classList.remove(this.errorClass);
-                            
+
                             // Success class'ı sadece pop modunda değilse ve checkbox/radio değilse ekle
                             if (errorDisplayMode !== 'pop' && !isCheckboxOrRadio && !isInFormCheckGroup) {
                                 input.classList.add(this.successClass);
@@ -381,6 +382,77 @@ export default class FormFactory {
                 }
 
                 return true;
+            }
+            // Yeni metod: Validation class'larını temizlemek için
+            resetFormValidationState() {
+                try {
+                    // Hata gösterim modunu al
+                    const errorDisplayMode = this.config?.validationOptions?.errorDisplayMode ?? 
+                        APP_CONFIG.UI.validation.errorDisplayMode ?? 
+                        'inline';
+            
+                    // Form elementlerini seç
+                    const formElements = this.form.querySelectorAll('input, select, textarea');
+                    
+                    formElements.forEach(element => {
+                        if (!element) return;
+            
+                        // Validation class'larını temizle
+                        if (this.errorClass) {
+                            element.classList.remove(this.errorClass);
+                        }
+                        if (this.successClass) {
+                            element.classList.remove(this.successClass);
+                        }
+            
+                        // Input tipine göre özel işlemler
+                        const isCheckboxOrRadio = element.type === 'checkbox' || element.type === 'radio';
+                        
+                        if (!isCheckboxOrRadio) {
+                            // Inline mod için hata mesajlarını temizle
+                            if (errorDisplayMode === 'inline') {
+                                let nextElement = element.nextElementSibling;
+                                while (nextElement && nextElement.className === 'invalid-feedback') {
+                                    nextElement.remove();
+                                    nextElement = element.nextElementSibling;
+                                }
+                            }
+            
+                            // Pop mod için popup'ları temizle
+                            if (errorDisplayMode === 'pop') {
+                                let popup = document.getElementById(`error-popup-${element.name}`);
+                                if (popup) {
+                                    // Önce event listener'ları temizle
+                                    const newPopup = popup.cloneNode(true);
+                                    popup.parentNode.replaceChild(newPopup, popup);
+                                    // Sonra elementi kaldır
+                                    newPopup.remove();
+                                }
+                            }
+                        }
+            
+                        // Ek validation-related attribute'ları temizle
+                        element.removeAttribute('aria-invalid');
+                        element.removeAttribute('aria-describedby');
+                    });
+            
+                    // Tüm kalan popup'ları temizle (pop mod için)
+                    document.querySelectorAll('.api-form-error-popup').forEach(popup => {
+                        // Event listener'ları temizle
+                        const newPopup = popup.cloneNode(true);
+                        popup.parentNode.replaceChild(newPopup, popup);
+                        // Elementi kaldır
+                        newPopup.remove();
+                    });
+            
+                    // Stil elementlerini temizle
+                    document.querySelectorAll('style[id^="error-popup-"]').forEach(style => {
+                        style.remove();
+                    });
+            
+                } catch (error) {
+                    console.error('Form validation state temizleme hatası:', error);
+                }
             }
         }
     }
