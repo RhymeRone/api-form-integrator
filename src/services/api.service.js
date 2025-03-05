@@ -88,9 +88,12 @@ export default class ApiService {
     handleSuccess(response) {
 
         // onSuccess callback'ini çağırıyoruz. Dönüş değeri false değilse default işlemler yürütülür.
-        const onSuccessResult = (typeof response.config.actions?.onSuccess === 'function')
-            ? response.config.actions.onSuccess(response)
-            : true;
+        let onSuccessResult = true;
+
+        if(typeof response.config.actions?.onSuccess === 'function'){
+            const result = response.config.actions.onSuccess(response);
+            onSuccessResult = result;
+        }
 
         // Eğer istek konfigürasyonunda onSuccess callback tanımlıysa, çağırıyoruz.
         if (onSuccessResult !== false) {
@@ -138,9 +141,12 @@ export default class ApiService {
         const requestConfig = error.response?.config || {};
 
         // onError callback'ini çağırıyoruz. Dönüş değeri false değilse default işlemler yürütülür.
-        const onErrorResult = (typeof requestConfig.actions?.onError === 'function')
-            ? requestConfig.actions.onError(error)
-            : true;
+        let onErrorResult = true;
+
+        if(typeof requestConfig.actions?.onError === 'function'){
+            const result = requestConfig.actions.onError(error);
+            onErrorResult = result;
+        }
 
         if (onErrorResult !== false) {
 
