@@ -188,7 +188,7 @@ Veri doğrulama kuralları ile:
     selector: '#formId',       // Form elementinin CSS seçicisi (zorunlu)
     endpoint: '/api/path',     // API endpoint'i (zorunlu)
     method: 'POST',            // HTTP metodu (GET, POST, PUT, DELETE, PATCH)
-    useFormData: true,         // Form verilerini FormData olarak göndermeye zorlar.
+    useFormData: true,         // Form verilerini FormData olarak göndermeye zorlar. (varsayılan true'dur. false yapılırsa JSON formatında gönderir.)
     // Axios ayarları da buradan yapılabilir. (headers, timeout, etc.)
     validation: true,          // Validasyon kontrolü
     validationOptions: {
@@ -553,6 +553,9 @@ Global hata yönetimi, API isteklerinde otomatik olarak uygulanır:
   - `successClass`: Başarı sınıfını belirler.
   - `errorDisplayMode`: Hata mesajlarının görünümünü belirler.
   - `errorColor`: Hata mesajlarının rengini belirler.
+
+- **useFormData parametresi:**  
+  Form verilerini FormData olarak göndermeye zorlar. (varsayılan true'dur. false yapılırsa JSON formatında gönderir.)
 
 ## 🔍 Örnekler
 

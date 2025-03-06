@@ -133,7 +133,7 @@ export default class FormFactory {
                 e.preventDefault();
 
                 // Form verisi al - dosya varsa FormData kullan
-                let formData = this.getFormData(this.config.useFormData ?? false);
+                let formData = this.getFormData(this.config.useFormData ?? true);
 
                 // Validasyon kontrolü
                 if (this.config.validation ?? true) {
