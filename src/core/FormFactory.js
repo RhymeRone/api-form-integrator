@@ -135,8 +135,6 @@ export default class FormFactory {
                 // Form verisi al - dosya varsa FormData kullan
                 let formData = this.getFormData(this.config.useFormData ?? false);
 
-                let isFormData = formData instanceof FormData;
-
                 // Validasyon kontrolü
                 if (this.config.validation ?? true) {
                     const validationErrors = await this.validateForm();

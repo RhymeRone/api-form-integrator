@@ -92,7 +92,7 @@ export default class ApiService {
 
         if(typeof response.config.actions?.onSuccess === 'function'){
             const result = response.config.actions.onSuccess(response);
-            onSuccessResult = result;
+            onSuccessResult = result === false ? false : true;
         }
 
         // Eğer istek konfigürasyonunda onSuccess callback tanımlıysa, çağırıyoruz.
@@ -145,7 +145,7 @@ export default class ApiService {
 
         if(typeof requestConfig.actions?.onError === 'function'){
             const result = requestConfig.actions.onError(error);
-            onErrorResult = result;
+            onErrorResult = result === false ? false : true;
         }
 
         if (onErrorResult !== false) {

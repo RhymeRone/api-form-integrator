@@ -244,9 +244,13 @@ class BaseForm {
 
         // Dosya varsa veya açıkça isteniyorsa FormData kullan
         if (hasFileInputs || useFormData === true) {
+
+            return new FormData(this.form);
+            /*
             const formData = new FormData();
 
             Object.entries(this.inputs).forEach(([name, input]) => {
+
                 // Dosya input'ları için
                 if (input.type === 'file' && input.files && input.files.length > 0) {
                     formData.append(name, input.files[0]);
@@ -261,10 +265,10 @@ class BaseForm {
                     formData.append(name, input.value.trim());
                 }
             });
-
-            return formData;
+            return formData;*/
         }
         // Normal JSON nesnesi (mevcut davranış)
+        /*
         else {
             const data = {};
             Object.entries(this.inputs).forEach(([name, input]) => {
@@ -274,6 +278,31 @@ class BaseForm {
                 }
                 data[name] = input.value.trim();
             });
+            return data;
+        }*/
+
+        else {
+            // Form elementlerinden JSON nesnesi oluştur
+            const data = {};
+            const formElements = this.form.elements;
+
+            // Tüm form elementlerini döngüye al
+            for (let i = 0; i < formElements.length; i++) {
+                const element = formElements[i];
+
+                // Name attribute'u olmayan elementleri atla
+                if (!element.name) continue;
+
+                // Radio butonları sadece checked olanları ekle
+                if (element.type === 'radio' && !element.checked) continue;
+
+                // Checkbox'ları sadece checked olanları ekle
+                if (element.type === 'checkbox' && !element.checked) continue;
+
+                // Diğer tüm element tiplerini ekle
+                data[element.name] = element.value.trim();
+            }
+
             return data;
         }
     }
@@ -509,9 +538,6 @@ class BaseForm {
         allInputs.forEach(input => {
             if (!input) return;
 
-            // Radio veya checkbox kontrol et
-            const isCheckboxOrRadio = input.type === 'checkbox' || input.type === 'radio';
-
             // Tüm sınıfları kaldır
             input.classList.remove(this.errorClass);
             input.classList.remove(this.successClass);
@@ -539,7 +565,6 @@ class BaseForm {
 
             // Radio veya checkbox kontrol et
             const isCheckboxOrRadio = input.type === 'checkbox' || input.type === 'radio';
-            const isInFormCheckGroup = input.closest('.form-check') !== null;
 
             const value = input.value !== undefined ? input.value.trim() : '';
             const rules = this.rules[fieldName];
