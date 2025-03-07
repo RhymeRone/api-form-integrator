@@ -79,8 +79,38 @@ export default class ApiService {
                 // tokenName: config.tokenName ?? false,
                 // clearToken: config.clearToken ?? false,
             };
+
+            // ShowConfirm kontrolü - Eğer config veya global seviyede tanımlanmışsa
+            const showConfirmConfig = config.showConfirm ?? this.apiConfig.showConfirm;
+
+            if (showConfirmConfig?.enabled) {
+                // SweetAlert2 ile onay iste
+                const confirmResult = await Swal.fire({
+                    title: showConfirmConfig.title || 'İşlemi Onaylayın',
+                    text: showConfirmConfig.text || 'Bu işlemi gerçekleştirmek istediğinize emin misiniz?',
+                    icon: showConfirmConfig.icon || 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: showConfirmConfig.confirmButtonColor || '#3085d6',
+                    cancelButtonColor: showConfirmConfig.cancelButtonColor || '#d33',
+                    confirmButtonText: showConfirmConfig.confirmButtonText || 'Evet, Onayla',
+                    cancelButtonText: showConfirmConfig.cancelButtonText || 'İptal'
+                });
+
+                // Kullanıcı onaylamadıysa isteği iptal et
+                if (!confirmResult.isConfirmed) {
+                    throw new Error('USER_CANCELLED');
+                }
+            }
             return await this.axios(requestConfig);
         } catch (error) {
+            // Kullanıcı iptal etme durumunu diğer hatalardan ayır
+            if (error.message === 'USER_CANCELLED') {
+                // console.log('İşlem kullanıcı tarafından iptal edildi.');
+                // Özel bir error objesi döndür ki handleError'da bunu işleyebilelim
+                const userCancelledError = new Error('İşlem kullanıcı tarafından iptal edildi.');
+                userCancelledError.userCancelled = true;
+                throw userCancelledError;
+            }
             throw error;
         }
     }
@@ -90,7 +120,7 @@ export default class ApiService {
         // onSuccess callback'ini çağırıyoruz. Dönüş değeri false değilse default işlemler yürütülür.
         let onSuccessResult = true;
 
-        if(typeof response.config.actions?.onSuccess === 'function'){
+        if (typeof response.config.actions?.onSuccess === 'function') {
             const result = response.config.actions.onSuccess(response);
             onSuccessResult = result === false ? false : true;
         }
@@ -116,8 +146,8 @@ export default class ApiService {
                 }
             }
 
-            let preventRedirect = response.config.actions?.success?.preventRedirect ?? response.config.preventRedirect 
-            ?? this.apiConfig.actions?.success?.preventRedirect ?? this.apiConfig.preventRedirect ?? false;
+            let preventRedirect = response.config.actions?.success?.preventRedirect ?? response.config.preventRedirect
+                ?? this.apiConfig.actions?.success?.preventRedirect ?? this.apiConfig.preventRedirect ?? false;
             let redirect = response.config.actions?.success?.redirect ?? this.apiConfig.success?.redirect ?? false;
             // Eğer başarı durumunda yönlendirme (redirect) tanımlıysa ve istek redirect'i engellenmemişse yönlendiriyoruz.
             if (redirect && !preventRedirect) {
@@ -137,6 +167,10 @@ export default class ApiService {
      */
     handleError(error) {
 
+        if (error.userCancelled) {
+            return error;
+        }
+
         // Hata durumunda, hata yönetimi işlemlerini yapar.
         const { status, data } = error.response || {};
         const errorConfig = this.apiConfig.errors?.[status] || {};
@@ -145,7 +179,7 @@ export default class ApiService {
         // onError callback'ini çağırıyoruz. Dönüş değeri false değilse default işlemler yürütülür.
         let onErrorResult = true;
 
-        if(typeof requestConfig.actions?.onError === 'function'){
+        if (typeof requestConfig.actions?.onError === 'function') {
             const result = requestConfig.actions.onError(error);
             onErrorResult = result === false ? false : true;
         }
@@ -243,17 +277,17 @@ export default class ApiService {
                 }
             }
 
-            let preventRedirect = requestConfig.actions?.errors?.preventRedirect ?? requestConfig.preventRedirect ?? 
-            this.apiConfig.actions?.errors?.preventRedirect ?? this.apiConfig.preventRedirect ?? false; 
-            let redirect = requestConfig.actions?.errors?.[status]?.redirect ?? requestConfig.actions?.errors?.redirect 
-            ?? this.apiConfig.errors?.[status]?.redirect ?? this.apiConfig.errors?.redirect ?? false;
-            
+            let preventRedirect = requestConfig.actions?.errors?.preventRedirect ?? requestConfig.preventRedirect ??
+                this.apiConfig.actions?.errors?.preventRedirect ?? this.apiConfig.preventRedirect ?? false;
+            let redirect = requestConfig.actions?.errors?.[status]?.redirect ?? requestConfig.actions?.errors?.redirect
+                ?? this.apiConfig.errors?.[status]?.redirect ?? this.apiConfig.errors?.redirect ?? false;
+
             // Eğer hata durumunda yönlendirme (redirect) tanımlıysa ve istek redirect'i engellenmemişse yönlendiriyoruz.
             if (redirect && !preventRedirect) {
                 setTimeout(() => {
                     window.location.href = redirect;
                 }, APP_CONFIG.UI?.notifications?.timer ?? 2000);
-            } 
+            }
         }
 
         return error;

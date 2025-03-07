@@ -37,6 +37,17 @@ export const integratorConfig = {
         errorDisplayMode: 'inline', // Hata mesajlarının görünümünü belirler. (inline, pop)
         errorColor: 'red', // Hata mesajlarının rengini belirler.
       },
+       // ShowConfirm ayarları - yeni eklenen
+      showConfirm: {
+        enabled: false, // Varsayılan olarak devre dışı
+        title: 'İşlemi Onaylayın',
+        text: 'Bu işlemi gerçekleştirmek istediğinize emin misiniz?',
+        icon: 'question',
+        confirmButtonText: 'Evet, Onayla',
+        cancelButtonText: 'İptal',
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33'
+      },
       fields: {
         email: {
           rules: ['required', 'email'],
@@ -385,6 +396,17 @@ export const integratorConfig = {
          preventRedirect: false, // Başarı durumunda yönlendirme engelleme
       // redirect: '/', // Başarı durumunda yönlendirme
          message: 'İşlem başarılı!' // Başarı durumunda mesaj
+    },
+     // ShowConfirm ayarları - yeni eklenen
+    showConfirm: {
+        enabled: false, // Varsayılan olarak devre dışı
+        title: 'İşlemi Onaylayın',
+        text: 'Bu işlemi gerçekleştirmek istediğinize emin misiniz?',
+        icon: 'question',
+        confirmButtonText: 'Evet, Onayla',
+        cancelButtonText: 'İptal',
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33'
     },
     // Yeni: Güvenlik header'ları ayarları
      security: { 

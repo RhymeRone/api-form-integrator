@@ -199,6 +199,17 @@ Veri doğrulama kuralları ile:
       errorDisplayMode: 'pop', // Hata mesajlarını popup olarak gösterir (inline, pop)
       errorColor: '#dc3545',    // Hata mesajlarının rengi
     },
+     // ShowConfirm ayarları - yeni eklenen
+    showConfirm: {
+        enabled: false, // Varsayılan olarak devre dışı
+        title: 'İşlemi Onaylayın',
+        text: 'Bu işlemi gerçekleştirmek istediğinize emin misiniz?',
+        icon: 'question',
+        confirmButtonText: 'Evet, Onayla',
+        cancelButtonText: 'İptal',
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33'
+    },
     preventRedirect: true,     // Otomatik yönlendirmeyi engeller
     sweetalert2: true,        // SweetAlert2 kullanımı (false yaparsanız Console.log ile yanıt alırsınız)
     tokenName: 'data.auth.access_token', // tokenin adı
@@ -258,6 +269,17 @@ Veri doğrulama kuralları ile:
     success: {
       redirect: '/dashboard',
       message: 'İşlem başarılı'
+    },
+     // ShowConfirm ayarları - yeni eklenen
+    showConfirm: {
+        enabled: false, // Varsayılan olarak devre dışı
+        title: 'İşlemi Onaylayın',
+        text: 'Bu işlemi gerçekleştirmek istediğinize emin misiniz?',
+        icon: 'question',
+        confirmButtonText: 'Evet, Onayla',
+        cancelButtonText: 'İptal',
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33'
     },
     // Güvenlik ayarları: Ek güvenlik header'ları otomatik olarak eklenir
     security: {
@@ -494,6 +516,84 @@ Pop modu, hata durumlarını göstermek için DOM'a geçici baloncuk elementleri
 
 Bu yaklaşım, sayfa akışını ve hizalamasını bozmadan kullanıcıya görsel geri bildirim sağlar. Özellikle sıkışık form düzenlerinde, yerleşim düzeni sorunlarını önlemek için idealdir.
 
+### showConfirm Özelliği - ✨ Yeni Özellik
+
+`showConfirm` özelliği, API istekleri gerçekleştirilmeden önce kullanıcıdan onay almanızı sağlar. Silme, ödeme veya kritik değişiklikler öncesinde kullanıcıya "Emin misiniz?" diyaloğu gösterir.
+
+#### Kullanım
+
+#### API İsteğinde:
+
+  ```javascript
+  apiService.request({
+    url: '/users/123',
+    method: 'DELETE',
+    showConfirm: {
+      enabled: true,
+      title: 'Kullanıcı Silme',
+      text: 'Bu kullanıcıyı silmek istediğinize emin misiniz?',
+      icon: 'warning',
+      confirmButtonText: 'Evet, Sil',
+      cancelButtonText: 'İptal',
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33'
+    }
+  });
+  ```
+
+#### Form Konfigürasyonunda:
+
+  ```javascript
+  FORMS: {
+    DELETE_USER: {
+      selector: '#deleteUserForm',
+      endpoint: '/users/delete',
+      method: 'DELETE',
+      showConfirm: {
+        enabled: true,
+        title: 'Kullanıcıyı Sil',
+        text: 'Bu işlem geri alınamaz!',
+        icon: 'warning',
+        confirmButtonText: 'Evet, Sil',
+        cancelButtonText: 'İptal',
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33'
+      }
+    }
+  }
+  ```
+
+#### Konfigürasyon Seçenekleri
+
+| Seçenek | Tip | Varsayılan | Açıklama |
+|---------|-----|------------|----------|
+| `enabled` | Boolean | `false` | Onay mekanizmasını etkinleştirir |
+| `title` | String | `'İşlemi Onaylayın'` | Diyaloğun başlığı |
+| `text` | String | `'Emin misiniz?'` | Diyaloğun mesajı |
+| `icon` | String | `'question'` | İkon tipi (`'warning'`, `'question'`, vb.) |
+| `confirmButtonText` | String | `'Evet'` | Onay butonu metni |
+| `cancelButtonText` | String | `'İptal'` | İptal butonu metni |
+| `confirmButtonColor` | String | `'#3085d6'` | Onay butonu rengi |
+| `cancelButtonColor` | String | `'#d33'` | İptal butonu rengi |
+
+#### İptal Edilme Durumu
+
+Kullanıcı diyaloğu iptal ettiğinde, istek gerçekleştirilmez ve özel bir hata fırlatılır:
+
+  ```javascript
+  try {
+    await apiService.request({
+      url: '/users/123',
+      method: 'DELETE',
+      showConfirm: { enabled: true }
+    });
+  } catch (error) {
+    if (error.userCancelled) { // Kullanıcı diyaloğu iptal ettiğinde true döner.
+      console.log('Kullanıcı işlemi iptal etti');
+    }
+  }
+  ```
+
 ### Helper Fonksiyonlar
 ```javascript
   // Form konfigürasyonunu alır
@@ -562,6 +662,17 @@ Global hata yönetimi, API isteklerinde otomatik olarak uygulanır:
 - **disableNotifications parametresi:**  
   Tüm bildirimleri devre dışı bırakır.(sweetalert ve console)
 
+- **showConfirm parametresi:**  
+  İşlemi onaylamak için kullanıcıdan onay ister.
+  - `enabled`: Onay isteği gösterme
+  - `title`: Onay isteği başlığı
+  - `text`: Onay isteği metni
+  - `icon`: Onay isteği icon'u
+  - `confirmButtonText`: Onay isteği onay butonu metni
+  - `cancelButtonText`: Onay isteği iptal butonu metni
+  - `confirmButtonColor`: Onay isteği onay butonu rengi
+  - `cancelButtonColor`: Onay isteği iptal butonu rengi
+  
 ## 🔍 Örnekler
 
 ### Doğrudan API Çağrısı Örneği
@@ -623,6 +734,17 @@ const customApiConfig = {
   },
   timeout: 60000,
   disableNotifications: false, // True yapılırsa tüm bildirimleri devre dışı bırakır.(sweetalert ve console)
+   // ShowConfirm ayarları - yeni eklenen
+  showConfirm: {
+        enabled: true, // Varsayılan olarak devre dışı
+        title: 'İşlemi Onaylayın',
+        text: 'Bu işlemi gerçekleştirmek istediğinize emin misiniz?',
+        icon: 'question',
+        confirmButtonText: 'Evet, Onayla',
+        cancelButtonText: 'İptal',
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33'
+  },
   sweetalert2: false, // SweetAlert2 kullanımını etkinleştirir false ile console hataları gösterir.(varsayılan true)
   // Diğer API ayarları da custom konfig içinde tanımlanabilir.
 };
@@ -658,6 +780,17 @@ hızlı konfig ayarlarını (quick config) merge edip dinamik olarak form sını
      preventRedirect: true,
      sweetalert2: true,
      disableNotifications: true, // True yapılırsa tüm bildirimleri devre dışı bırakır.(sweetalert ve console)
+      // ShowConfirm ayarları - yeni eklenen
+     showConfirm: { // Kullanıcıdan onay ister.
+        enabled: false, // Varsayılan olarak devre dışı
+        title: 'İşlemi Onaylayın',
+        text: 'Bu işlemi gerçekleştirmek istediğinize emin misiniz?',
+        icon: 'question',
+        confirmButtonText: 'Evet, Onayla',
+        cancelButtonText: 'İptal',
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33'
+     },
      tokenName: 'data.auth.access_token',
      fields: {
          email: { rules: ['required', 'email'],
@@ -780,6 +913,40 @@ console.log(mergedConfig);
 
 - **Soru:** Dual Package desteği ne anlama gelir?  
   **Cevap:** Paket, hem CommonJS hem de ES Modules formatında kullanılabilir. Böylece Node.js ve tarayıcı ortamlarında esnek kullanım imkanı sunar.
+
+- **Soru:** `showConfirm` parametresi ne işe yarar?  
+  **Cevap:** İşlemi onaylamak için kullanıcıdan onay ister.
+  - `enabled`: Onay isteği gösterme
+  - `title`: Onay isteği başlığı
+  - `text`: Onay isteği metni
+  - `icon`: Onay isteği icon'u
+  - `confirmButtonText`: Onay isteği onay butonu metni
+  - `cancelButtonText`: Onay isteği iptal butonu metni
+  - `confirmButtonColor`: Onay isteği onay butonu rengi
+  - `cancelButtonColor`: Onay isteği iptal butonu rengi
+  
+- **Soru:** `disableNotifications` parametresi ne işe yarar?  
+  **Cevap:** Tüm bildirimleri devre dışı bırakır.(sweetalert ve console)
+
+- **Soru:** `validationOptions` ne işe yarar?  
+  **Cevap:** Validasyon mesajlarının görünümünü belirler. 
+  - `showErrors`: Hata mesajlarının görünümünü belirler.
+  - `errorClass`: Hata sınıfını belirler.
+  - `successClass`: Başarı sınıfını belirler.
+  - `errorDisplayMode`: Hata mesajlarının görünümünü belirler.
+  - `errorColor`: Hata mesajlarının rengini belirler.
+
+- **Soru:** `useFormData` parametresi ne işe yarar?  
+  **Cevap:** Form verilerini FormData olarak göndermeye zorlar. (varsayılan true'dur. false yapılırsa JSON formatında gönderir.)
+
+- **Soru:** `preventRedirect` parametresi ne işe yarar?  
+  **Cevap:** Başarılı veya hata durumunda yönlendirmeyi engeller.
+
+- **Soru:** `sweetalert2` parametresi ne işe yarar?  
+  **Cevap:** SweetAlert2 kullanımını etkinleştirir.
+
+- **Soru:** `timeout` parametresi ne işe yarar?  
+  **Cevap:** İstek zaman aşımını belirler.
 
 
 ## 🔧 Sorun Giderme
