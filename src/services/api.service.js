@@ -106,7 +106,9 @@ export default class ApiService {
                 this.apiConfig.success?.message ??
                 "İstek başarılı bir şekilde gerçekleştirildi.";
 
-            if (successMessage) {
+            const disableNotifications = response.config.disableNotifications ?? this.apiConfig.disableNotifications ?? false;
+
+            if (successMessage && !disableNotifications) {
                 if ((response.config.sweetalert2 ?? this.apiConfig.sweetalert2 ?? true) === false) {
                     console.log(successMessage);
                 } else {
@@ -161,9 +163,9 @@ export default class ApiService {
                 errorConfig?.message ??
                 this.apiConfig.errors?.message;
             const errorStatus = error.response?.status;
-
+            const disableNotifications = requestConfig.disableNotifications ?? this.apiConfig.disableNotifications ?? false;
             // Eğer sweetalert2 kullanılmıyorsa konsola loglama yapılıyor; aksi halde uyarı gösteriliyor.
-            if ((requestConfig.sweetalert2 ?? this.apiConfig.sweetalert2 ?? true) === false) {
+            if ((requestConfig.sweetalert2 ?? this.apiConfig.sweetalert2 ?? true) === false && !disableNotifications) {
                 if (errorMessage) {
                     console.log(errorMessage + ' ' + errorStatus);
                 } else {
@@ -207,7 +209,7 @@ export default class ApiService {
                     }
                 }
             } else {
-                if (errorMessage) {
+                if (errorMessage && !disableNotifications) {
                     Swal.fire({
                         icon: 'error',
                         title: errorStatus,

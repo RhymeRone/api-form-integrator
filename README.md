@@ -190,6 +190,7 @@ Veri doğrulama kuralları ile:
     method: 'POST',            // HTTP metodu (GET, POST, PUT, DELETE, PATCH)
     useFormData: true,         // Form verilerini FormData olarak göndermeye zorlar. (varsayılan true'dur. false yapılırsa JSON formatında gönderir.)
     // Axios ayarları da buradan yapılabilir. (headers, timeout, etc.)
+    disableNotifications: false, // True yapılırsa tüm bildirimleri devre dışı bırakır.(sweetalert ve console)
     validation: true,          // Validasyon kontrolü
     validationOptions: {
       showErrors: true,         // Hata mesajlarını gösterir
@@ -244,6 +245,7 @@ Veri doğrulama kuralları ile:
     },
     timeout: 30000,           // İstek zaman aşımı (ms)
     sweetalert2: true,        // SweetAlert2 kullanımı
+    disableNotifications: false, // True yapılırsa tüm bildirimleri devre dışı bırakır.(sweetalert ve console)
     preventRedirect: true,     // Otomatik yönlendirmeyi engeller
     tokenName: 'token', // tokenin adı (localStorage'da kullanılır)
     tokenKey: 'token', // tokenin key'i (doğrudan header'da kullanılır)
@@ -557,6 +559,9 @@ Global hata yönetimi, API isteklerinde otomatik olarak uygulanır:
 - **useFormData parametresi:**  
   Form verilerini FormData olarak göndermeye zorlar. (varsayılan true'dur. false yapılırsa JSON formatında gönderir.)
 
+- **disableNotifications parametresi:**  
+  Tüm bildirimleri devre dışı bırakır.(sweetalert ve console)
+
 ## 🔍 Örnekler
 
 ### Doğrudan API Çağrısı Örneği
@@ -617,6 +622,7 @@ const customApiConfig = {
     'X-Custom-Header': 'custom-value'
   },
   timeout: 60000,
+  disableNotifications: false, // True yapılırsa tüm bildirimleri devre dışı bırakır.(sweetalert ve console)
   sweetalert2: false, // SweetAlert2 kullanımını etkinleştirir false ile console hataları gösterir.(varsayılan true)
   // Diğer API ayarları da custom konfig içinde tanımlanabilir.
 };
@@ -651,6 +657,7 @@ hızlı konfig ayarlarını (quick config) merge edip dinamik olarak form sını
      validation: true,
      preventRedirect: true,
      sweetalert2: true,
+     disableNotifications: true, // True yapılırsa tüm bildirimleri devre dışı bırakır.(sweetalert ve console)
      tokenName: 'data.auth.access_token',
      fields: {
          email: { rules: ['required', 'email'],

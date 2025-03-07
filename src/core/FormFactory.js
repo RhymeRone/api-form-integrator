@@ -367,8 +367,10 @@ export default class FormFactory {
                     });
                 }
 
+                const disableNotifications = this.config.disableNotifications ?? APP_CONFIG.API.disableNotifications ?? false;
+
                 // SweetAlert2 ile hataları göster (showErrors değerine bakılmaksızın)
-                if ((this.config.sweetalert2 ?? APP_CONFIG.API.sweetalert2 ?? true) !== false) {
+                if ((this.config.sweetalert2 ?? APP_CONFIG.API.sweetalert2 ?? true) !== false && !disableNotifications) {
                     Swal.fire({
                         icon: 'error',
                         title: 'Form Hataları',

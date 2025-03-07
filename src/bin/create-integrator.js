@@ -20,6 +20,7 @@ export const integratorConfig = {
       useFormData: true, // Form verilerini FormData olarak göndermeye zorlar. (varsayılan true'dur. false yapılırsa JSON formatında gönderir.)
       preventRedirect: true, // Başarılı istekten sonra yönlendirmeyi engeller
       sweetalert2: true, // SweetAlert2 kullanımını etkinleştirir false ile console hataları gösterir.
+      disableNotifications: false, // True yapılırsa tüm bildirimleri devre dışı bırakır.(sweetalert ve console)
    // tokenKey: 'token', // Token anahtarı (header'da token değeri), tokenName'e göre önceliklidir.
    // tokenName: 'token', // Token adı (localStorage'da token adı, dot notation desteği bulunmaktadır örneğin data.token.tokenName. tokenKey değeri girilirse bu alan gerekli değildir.)
       // -> tokenName ne işe yarar? 
@@ -359,6 +360,7 @@ export const integratorConfig = {
     },
     timeout: 30000, // İstek zaman aşımı (ms)
     sweetalert2: true, // Sweetalert2 kullanımı
+    disableNotifications: false, // True yapılırsa tüm bildirimleri devre dışı bırakır.(sweetalert ve console)
     preventRedirect: false, // Yönlendirme engelleme
     // tokenKey: 'token', // Token anahtarı (header'da token değeri), tokenName'e göre önceliklidir.
     tokenName: 'token', // Token adı (localStorage'da token adı, dot notation desteği bulunmaktadır örneğin data.token.tokenName. tokenKey değeri girilirse bu alan gerekli değildir.)
