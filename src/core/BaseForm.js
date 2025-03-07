@@ -156,6 +156,7 @@ class BaseForm {
     initializeInputs() {
         this.form.querySelectorAll('input, select, textarea').forEach(input => {
             this.inputs[input.name] = input;
+            input.originalValue = input.value; // orjinal değeri sakla
 
             // Dosya inputları için özel işlem
             if (input.type === 'file') {
@@ -200,7 +201,7 @@ class BaseForm {
 
                 // Ayrıca change ve blur olaylarını da dinleyelim
                 input.addEventListener('change', () => {
-                    this.validateField(input.name);
+                    this.handleInputChange(input);
                 });
 
                 input.addEventListener('blur', () => {
@@ -219,6 +220,18 @@ class BaseForm {
             this.fileInputsLastFiles.clear();
         });
     }
+
+    handleInputChange(input) {
+        // Değer değişmemişse işlem yapma
+        if (input.value === input.originalValue) {
+          input.classList.remove(this.successClass);
+          input.classList.remove(this.errorClass);
+          return;
+        }
+        
+        // Değer değişmişse validasyon yap
+        this.validateField(input.name);
+      }
 
     // getFormData() {
     //     const data = {};
@@ -313,7 +326,10 @@ class BaseForm {
 
     async validateField(fieldName) {
         const input = this.inputs[fieldName];
-        if (!input) return true;
+        
+        if (!input || input.value === input.originalValue) { // Orijinal değer kontrolü
+            return true;
+        }
 
         // Radio veya checkbox kontrol et
         const isCheckboxOrRadio = input.type === 'checkbox' || input.type === 'radio';
