@@ -9,6 +9,7 @@ class BaseForm {
         this.validationErrors = {};
         this.uiConfig = getUiConfig();
         this.fileInputsLastFiles = new Map(); // Dosya inputları için son seçilen dosyaları sakla
+        this.originalValues = {}; // Orijinal değerleri sakla
 
         // Form bazında showErrors kontrolü
         this.showErrors = this.formConfig?.validationOptions?.showErrors ?? this.uiConfig?.validation?.showErrors ?? true;
@@ -147,6 +148,13 @@ class BaseForm {
             document.head.appendChild(successStyleElement);
         }
 
+        if (formConfig.getData && formConfig.getData.autoFill) {
+            // DOM yüklendikten sonra veri yükleme işlemini başlat
+            setTimeout(() => {
+                this.loadFormData();
+            }, 100);
+        }
+
         if (this.form) {
             this.initializeInputs();
             this.bindEvents();
@@ -224,14 +232,14 @@ class BaseForm {
     handleInputChange(input) {
         // Değer değişmemişse işlem yapma
         if (input.value === input.originalValue) {
-          input.classList.remove(this.successClass);
-          input.classList.remove(this.errorClass);
-          return;
+            input.classList.remove(this.successClass);
+            input.classList.remove(this.errorClass);
+            return;
         }
-        
+
         // Değer değişmişse validasyon yap
         this.validateField(input.name);
-      }
+    }
 
     // getFormData() {
     //     const data = {};
@@ -326,8 +334,12 @@ class BaseForm {
 
     async validateField(fieldName) {
         const input = this.inputs[fieldName];
-        
+
         if (!input || input.value === input.originalValue) { // Orijinal değer kontrolü
+            if (input) {
+                input.classList.remove(this.successClass);
+                input.classList.remove(this.errorClass);
+            }
             return true;
         }
 
@@ -812,6 +824,249 @@ class BaseForm {
         e.preventDefault();
         // Alt sınıflar bu metodu override edecek
     }
+
+    /****************************** getData için ******************************/
+    /**
+   * API'den veri yükleyerek form alanlarını doldurur
+   * @param {Object} options - İsteğe bağlı parametreler
+   * @returns {Promise}
+   */
+    async loadFormData(options = {}) {
+        // getData yapılandırması kontrolü
+        const dataConfig = this.formConfig.getData;
+        if (!dataConfig) {
+            console.warn('Bu form için getData yapılandırması bulunamadı');
+            return Promise.reject(new Error('getData yapılandırması bulunamadı'));
+        }
+
+        try {
+            // Endpoint ve parametreleri işle
+            let endpoint = options.endpoint || dataConfig.endpoint;
+
+            // URL parametrelerini değiştir ({id} gibi)
+            if (options.params || dataConfig.params) {
+                const allParams = { ...(dataConfig.params || {}), ...(options.params || {}) };
+                Object.entries(allParams).forEach(([key, value]) => {
+                    endpoint = endpoint.replace(new RegExp(`{${key}}`, 'g'), value);
+                });
+            }
+
+            // API isteği gönder
+            const apiService = this.apiService || window.apiService;
+            if (!apiService) {
+                throw new Error('API servisi bulunamadı');
+            }
+
+            const response = await apiService.request({
+                url: endpoint,
+                method: dataConfig.method || 'GET',
+                headers: dataConfig.headers || {},
+                params: options.params || dataConfig.params || {},
+                disableNotifications: true
+            });
+
+            // Yanıt verisini al
+            const data = response.data.data || response.data;
+
+            // Verileri form alanlarına doldur
+            if (data) {
+                this._fillFormWithData(data, dataConfig.mapping || {});
+                console.log('Form verileri başarıyla yüklendi:', this.formConfig.selector);
+            }
+
+            return data;
+        } catch (error) {
+            console.error('Form verileri yüklenirken hata:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Form verilerini yükleyip inputlara dağıtır
+     * @private
+     */
+    _fillFormWithData(data, mapping) {
+        const useAllFields = mapping['*'] !== undefined;
+
+        // Önce mapping'leri işle
+        Object.entries(mapping).forEach(([dataPath, target]) => {
+            if (dataPath === '*') return; // Özel anahtar, atla
+
+            const value = this._getNestedValue(data, dataPath);
+
+            // Hedefin bir dizi olup olmadığını kontrol et
+            if (Array.isArray(target)) {
+                // Dizi elemanlarını tek tek işle
+                target.forEach(targetItem => {
+                    if (typeof targetItem === 'string') {
+                        // String ise (input adı)
+                        const input = this.inputs[targetItem];
+                        if (input && value !== undefined) {
+                            this._setInputValue(input, value);
+                        }
+                    } else if (typeof targetItem === 'object' && targetItem !== null) {
+                        // Obje ise (element konfigürasyonu)
+                        this._setElementAttribute(targetItem, value);
+                    }
+                });
+            }
+            // Tek bir hedef ise
+            else if (typeof target === 'string') {
+                const input = this.inputs[target];
+                if (input && value !== undefined) {
+                    this._setInputValue(input, value);
+                }
+            } else if (typeof target === 'object' && target !== null) {
+                this._setElementAttribute(target, value);
+            }
+        });
+
+        // * ile otomatik eşleştirme
+        if (useAllFields) {
+            Object.entries(this.inputs).forEach(([inputName, input]) => {
+                // Zaten mapping ile doldurulmamışsa ve submit butonu değilse
+                if (!Object.values(mapping).filter(m => typeof m === 'string').includes(inputName) && inputName !== 'submit') {
+                    const value = this._getNestedValue(data, inputName);
+                    if (value !== undefined) {
+                        this._setInputValue(input, value);
+                    }
+                }
+            });
+        }
+
+        // Orijinal değerleri güncelle
+        this.resetOriginalValues();
+    }
+
+/**
+ * Element özelliklerini ayarlar
+ * @private
+ */
+_setElementAttribute(config, value) {
+    // Config parametrelerini al
+    const { selector, attribute, transform, callback } = config;
+    
+    // Değer tanımsızsa işlem yapma
+    if (value === undefined) return;
+  
+    try {
+      // Önce form içinde ara
+      let elements = Array.from(this.form.querySelectorAll(selector));
+      
+      // Form içinde element bulunamadıysa document genelinde ara
+      if (elements.length === 0) {
+        elements = Array.from(document.querySelectorAll(selector));
+      }
+      
+      if (elements.length === 0) {
+        console.warn(`Selector ile element bulunamadı: ${selector}`);
+        return;
+      }
+      
+      // Her bulunan element için işlem yap
+      elements.forEach(element => {
+        // Dönüştürme fonksiyonu varsa kullan
+        let finalValue = value;
+        if (typeof transform === 'function') {
+          finalValue = transform(value, element);
+        }
+        
+        // HTML attribute'u ayarla
+        if (attribute) {
+          // Özel durumlar
+          if (attribute === 'innerText') {
+            element.innerText = finalValue;
+          } else if (attribute === 'innerHTML') {
+            element.innerHTML = finalValue;
+          } else if (attribute === 'value' && element.tagName === 'INPUT') {
+            element.value = finalValue;
+            // Change event trigger
+            element.dispatchEvent(new Event('change', { bubbles: true }));
+          } else {
+            // Diğer tüm özellikler
+            element.setAttribute(attribute, finalValue);
+          }
+        }
+        
+        // Ek işlemler için callback fonksiyonu
+        if (typeof callback === 'function') {
+          callback(element, value, this.form);
+        }
+      });
+    } catch (error) {
+      console.error(`Element özelliği ayarlanırken hata: ${selector}/${attribute}`, error);
+    }
+  }
+
+    /**
+     * Input'un değerini atar
+     * @private
+     */
+    _setInputValue(input, value) {
+        if (!input) return;
+
+        switch (input.type) {
+            case 'checkbox':
+                input.checked = Boolean(value);
+                break;
+            case 'radio':
+                // Radio grubu için değer ataması
+                const form = input.closest('form');
+                if (form) {
+                    const radioGroup = form.querySelectorAll(`input[type="radio"][name="${input.name}"]`);
+                    radioGroup.forEach(radio => {
+                        radio.checked = (radio.value == value);
+                    });
+                }
+                break;
+            case 'select-multiple':
+                if (Array.isArray(value)) {
+                    Array.from(input.options).forEach(option => {
+                        option.selected = value.includes(option.value);
+                    });
+                }
+                break;
+            case 'file':
+                // Dosya inputları için değer ataması yapma
+                break;
+            default:
+                input.value = value !== null && value !== undefined ? value : '';
+        }
+
+        // Input değişikliği olayını tetikle
+        input.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+
+    /**
+     * Nested obje yolundaki değeri getirir
+     * @private
+     */
+    _getNestedValue(obj, path) {
+        return path.split('.').reduce((prev, curr) => {
+            // Array indeksi desteği: categories[0].name
+            if (curr.includes('[') && curr.includes(']')) {
+                const propName = curr.substring(0, curr.indexOf('['));
+                const index = parseInt(curr.substring(curr.indexOf('[') + 1, curr.indexOf(']')));
+                return prev && prev[propName] && prev[propName][index] !== undefined ?
+                    prev[propName][index] : undefined;
+            }
+            return prev && prev[curr] !== undefined ? prev[curr] : undefined;
+        }, obj);
+    }
+
+    /**
+     * Form alanlarının orijinal değerlerini günceller
+     * @returns {this}
+     */
+    resetOriginalValues() {
+        Object.values(this.inputs).forEach(input => {
+            if (input) {
+                input.originalValue = input.value;
+            }
+        });
+        return this;
+    }
+    /****************************** getData için ******************************/
 }
 
 export default BaseForm; 

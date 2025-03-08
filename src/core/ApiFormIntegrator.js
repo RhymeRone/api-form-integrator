@@ -27,6 +27,15 @@ export default class ApiFormIntegrator {
     getForm(formKey) {
         return this.formManager.getForm(formKey);
     }
+    loadFormData(formKey, options = {}) {
+        const form = this.getForm(formKey);
+        if (!form) {
+          console.error(`Form bulunamadı: ${formKey}`);
+          return Promise.reject(new Error(`Form bulunamadı: ${formKey}`));
+        }
+        
+        return form.loadFormData(options);
+      }
 }
 
 // Mevcut singleton instance'ı koru

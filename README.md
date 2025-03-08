@@ -348,6 +348,7 @@ Veri doğrulama kuralları ile:
     }
   }
 ```
+## Yeni Özellikler
 
 ### Validasyon Mesajları Konfigürasyonu (APP_CONFIG.UI.VALIDATION.MESSAGES) - ✨ Yeni Özellik 
 
@@ -593,6 +594,232 @@ Kullanıcı diyaloğu iptal ettiğinde, istek gerçekleştirilmez ve özel bir h
     }
   }
   ```
+### getData Özelliği - ✨ Yeni Özellik
+
+Form veri yükleme ve otomatik doldurma özelliği `getData` sayesinde herhangi bir formu API'den gelen verilerle anında doldurabilirsiniz.
+
+#### Özellikler
+
+- API endpoint ile otomatik veri yükleme
+- Form açıldığında otomatik doldurma
+- Özel alanlar için mapping desteği
+- HTML elementlerinin attribute'larına veri yerleştirme
+- Özel dönüşüm ve callback fonksiyonları
+
+#### Kullanım
+
+##### Temel Yapılandırma
+
+API'den veri çekip formu otomatik doldurma:
+
+  ```javascript
+  const formConfig = {
+    selector: '#userForm',
+    api: {
+      store: '/api/users',
+      update: '/api/users/{id}'
+    },
+    getData: {
+      endpoint: '/api/users/{id}',
+      autoFill: true,
+      params: {
+        id: 5 // veya dinamik olarak alınan değer
+      }
+    }
+  };
+  ```
+
+##### Manuel Veri Yükleme
+
+Form yüklendiğinde otomatik doldurma yerine bir butona tıklama ile veri yükleme:
+
+  ```javascript
+  // Form tanımlaması
+  const userFormConfig = {
+    selector: '#userForm',
+    getData: {
+      endpoint: '/api/users/{id}',
+      autoFill: false
+    }
+  };
+
+  // Butona tıklanınca formu doldur
+  document.getElementById('loadDataBtn').addEventListener('click', () => {
+    const userId = document.getElementById('userId').value;
+    userForm.loadFormData({
+      params: {
+        id: userId
+      }
+    });
+  });
+  ```
+
+#### Alan Eşleştirme (Mapping)
+
+API'den gelen verilerin hangi form alanlarına veya HTML elementlerine yerleşeceğini belirleyebilirsiniz.
+
+##### Basit Alan Eşleştirme
+
+  ```javascript
+  getData: {
+    endpoint: '/api/users/{id}',
+    mapping: {
+      'first_name': 'name',
+      'contact.email': 'email',
+      'contact.phone': 'phone',
+      'address.city': 'city',
+      'role': 'user_role'
+    }
+  }
+  ```
+
+##### Tüm Alanların Otomatik Eşleştirilmesi
+
+  ```javascript
+  getData: {
+    endpoint: '/api/users/{id}',
+    mapping: {
+      // Özel eşleştirmeler
+      'contact.email': 'email', 
+      // Kalan tüm alanları otomatik eşleştir
+      '*': true
+    }
+  }
+  ```
+
+##### HTML Elementlerine Veri Yerleştirme
+
+  ```javascript
+  getData: {
+    endpoint: '/api/users/{id}',
+    mapping: {
+      // Normal form alanları
+      'name': 'name',
+      'email': 'email',
+      
+      // HTML element attribute'larına veri yerleştirme
+      'profile_image': {
+        selector: '#profileImagePreview',
+        attribute: 'src'
+      },
+      
+      // innerText ve innerHTML desteği
+      'role_description': {
+        selector: '.role-description',
+        attribute: 'innerText'
+      },
+      
+      // Veri dönüştürme
+      'created_at': {
+        selector: '.join-date',
+        attribute: 'innerText',
+        transform: (value) => {
+          return new Date(value).toLocaleDateString('tr-TR');
+        }
+      }
+    }
+  }
+  ```
+
+##### Birden Fazla Element Güncelleme
+
+Aynı veriyi birden fazla yerde kullanmak için dizi yapısı:
+
+  ```javascript
+  getData: {
+    endpoint: '/api/users/{id}',
+    mapping: {
+      'profile_image': [
+        {
+          selector: '#profileImagePreview',
+          attribute: 'src'
+        },
+        {
+          selector: '#current_image',
+          attribute: 'value'
+        },
+        {
+          selector: '#profileImageLink',
+          attribute: 'href',
+          callback: (element, value, form) => {
+            const noImgText = form.querySelector('#noImageText');
+            if (value) {
+              element.style.display = 'block';
+              if (noImgText) noImgText.style.display = 'none';
+            } else {
+              element.style.display = 'none';
+              if (noImgText) noImgText.style.display = 'block';
+            }
+          }
+        }
+      ]
+    }
+  }
+  ```
+
+##### Callback Fonksiyonları ile Karmaşık İşlemler
+
+  ```javascript
+  getData: {
+    endpoint: '/api/users/{id}',
+    mapping: {
+      'status': {
+        selector: '.status-badge',
+        attribute: 'data-status',
+        callback: (element, value, form) => {
+          // Tüm renk sınıflarını temizle
+          element.classList.remove('bg-success', 'bg-danger', 'bg-warning');
+          
+          // Statüye göre uygun renk ve metin ata
+          if (value === 'active') {
+            element.classList.add('bg-success');
+            element.innerText = 'Aktif';
+          } else if (value === 'pending') {
+            element.classList.add('bg-warning');
+            element.innerText = 'Beklemede';
+          } else {
+            element.classList.add('bg-danger');
+            element.innerText = 'Pasif';
+          }
+        }
+      }
+    }
+  }
+  ```
+
+#### Programatik Kullanım
+
+API Form Integrator API'si üzerinden form verilerini yükleme:
+
+  ```javascript
+  // Statik bir ID ile
+  window.integrator.loadFormData('USER_EDIT_FORM', {
+    params: {
+      id: 5
+    }
+  });
+
+  // Dinamik parametrelerle
+  const userId = getSelectedUserId();
+  window.integrator.loadFormData('USER_EDIT_FORM', {
+    params: {
+      id: userId
+    },
+    onSuccess: (data) => {
+      console.log('Kullanıcı verileri yüklendi:', data);
+    },
+    onError: (error) => {
+      console.error('Veri yükleme hatası:', error);
+    }
+  });
+  ```
+
+#### Önemli Notlar
+
+- `autoFill: true` kullanıldığında, form DOM'a eklendikten sonra veriler otomatik olarak yüklenir
+- Veri yüklendikten sonra formun orijinal değerleri güncellenir, böylece değişiklik takibi doğru şekilde çalışır
+- Form dışındaki elementleri güncellemek için form dışında selektor kullanılabilir
+- Kompleks işlemler için callback fonksiyonları kullanılabilir
 
 ### Helper Fonksiyonlar
 ```javascript
@@ -672,6 +899,22 @@ Global hata yönetimi, API isteklerinde otomatik olarak uygulanır:
   - `cancelButtonText`: Onay isteği iptal butonu metni
   - `confirmButtonColor`: Onay isteği onay butonu rengi
   - `cancelButtonColor`: Onay isteği iptal butonu rengi
+
+- **getdata**
+  - `autoFill`: true yapılırsa form yüklendiğinde veriler otomatik olarak yüklenir.
+  - `endpoint`: API endpoint'i
+  - `params`: API parametreleri
+  - `onSuccess`: Başarılı istekte çalışacak fonksiyon
+  - `onError`: Hata durumunda çalışacak fonksiyon
+  - `mapping`: API'den gelen verilerin form alanlarına eşleştirilmesi için kullanılır. Aşağıdaki yapıları destekler:
+    - `string`: API'den gelen verinin doğrudan form alanına atanması
+    - `array`: Birden fazla HTML elementine aynı verinin atanması
+    - `object`: 
+      - `selector`: Hedef HTML elementi seçicisi
+      - `attribute`: Verinin atanacağı HTML özelliği (value, src, href vb.)
+      - `transform`: Veriyi işlemek için dönüştürme fonksiyonu
+      - `callback`: Veri atandıktan sonra çalışacak özel fonksiyon
+    - `*`: Tüm form alanlarını otomatik eşleştirme
   
 ## 🔍 Örnekler
 
