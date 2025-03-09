@@ -765,13 +765,78 @@ class BaseForm {
             case 'date':
                 return !isNaN(Date.parse(value));
 
-            case 'before':
-                const beforeDate = rule.value === 'today' ? new Date() : new Date(rule.value);
-                return new Date(value) < beforeDate;
-
-            case 'after':
-                const afterDate = rule.value === 'today' ? new Date() : new Date(rule.value);
-                return new Date(value) > afterDate;
+                case 'before':
+                    case 'after':
+                        try {
+                            let compareDate;
+                            
+                            // 1. Başka bir alan değerine referans ise
+                            if (this.inputs[rule.value]) {
+                                // Eğer referans alınan input boşsa, validasyonu geçerli say
+                                if (!this.inputs[rule.value].value.trim()) {
+                                    return true;
+                                }
+                                compareDate = new Date(this.inputs[rule.value].value);
+                                
+                                // Eğer geçersiz bir tarih ise, validasyonu geçerli say
+                                if (isNaN(compareDate.getTime())) {
+                                    return true;
+                                }
+                            }
+                            // 2. "today" ise bugünün tarihi
+                            else if (rule.value === 'today') {
+                                compareDate = new Date();
+                            }
+                            // 3. Göreceli tarih ifadesi ise (+1 year, -3 months gibi)
+                            else if (rule.value.startsWith('+') || rule.value.startsWith('-')) {
+                                const now = new Date();
+                                const match = rule.value.match(/([+-])(\d+)\s*(\w+)/);
+                                
+                                if (match) {
+                                    const [, sign, amount, unit] = match;
+                                    const numAmount = parseInt(amount) * (sign === '+' ? 1 : -1);
+                                    
+                                    switch(unit.toLowerCase()) {
+                                        case 'day':
+                                        case 'days':
+                                            now.setDate(now.getDate() + numAmount);
+                                            break;
+                                        case 'month':
+                                        case 'months':
+                                            now.setMonth(now.getMonth() + numAmount);
+                                            break;
+                                        case 'year':
+                                        case 'years':
+                                            now.setFullYear(now.getFullYear() + numAmount);
+                                            break;
+                                    }
+                                    
+                                    compareDate = now;
+                                } else {
+                                    compareDate = new Date(rule.value);
+                                }
+                            }
+                            // 4. Normal tarih ifadesi
+                            else {
+                                compareDate = new Date(rule.value);
+                            }
+                            
+                            const dateValue = new Date(value);
+                            
+                            // Eğer girilen değer geçersiz bir tarih ise, validasyonu başarısız say
+                            if (isNaN(dateValue.getTime())) {
+                                return false;
+                            }
+                            
+                            if (rule.type === 'before') {
+                                return dateValue < compareDate;
+                            } else { // after
+                                return dateValue > compareDate;
+                            }
+                        } catch (e) {
+                            console.error('Tarih validasyon hatası:', e);
+                            return false;
+                        }
 
             case 'regex':
                 try {

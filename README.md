@@ -433,6 +433,71 @@ API Form Integrator aşağıdaki validasyon kurallarını destekler ve her biri 
 - `mimes:ext1,ext2`: Belirli dosya uzantıları
 - `dimensions:params`: Resim boyutları kontrolü
 
+#### Geliştirilmiş Tarih Validasyonu - ✨ Yeni Özellik
+
+##### Özellikler
+
+Form validasyonlarında tarih alanları için geliştirilmiş `before` ve `after` kuralları artık şu özellikleri desteklemektedir:
+
+- Form içindeki diğer tarih alanlarına referans verme
+- Göreceli tarih ifadeleri kullanma (+1 year, -3 months vb.)
+- Boş alan kontrolü (referans alınan alan boşsa validasyon hatası vermez)
+
+##### Kullanım Örnekleri
+
+###### 1. İki Tarih Arasında İlişki Kurma
+
+  ```javascript
+  // Başlangıç tarihinin 1900'den sonra olması gerekiyor
+  const startDateRules = [
+    { type: 'required', message: 'Başlangıç tarihi zorunludur' },
+    { type: 'after', value: '1900-01-01', message: 'Başlangıç tarihi 1900 yılından sonra olmalıdır' }
+  ];
+
+  // Bitiş tarihi başlangıç tarihinden sonra olmalıdır
+  const endDateRules = [
+    { type: 'required', message: 'Bitiş tarihi zorunludur' },
+    { type: 'after', value: 'start_date', message: 'Bitiş tarihi başlangıç tarihinden sonra olmalıdır' }
+  ];
+  ```
+
+###### 2. Göreceli Tarih Kullanımı
+
+  ```javascript
+  // Doğum tarihi bugünden önce olmalıdır
+  const birthDateRules = [
+    { type: 'required', message: 'Doğum tarihi zorunludur' },
+    { type: 'before', value: 'today', message: 'Doğum tarihi bugünden önce olmalıdır' }
+  ];
+
+  // Teslim tarihi en fazla 3 ay sonra olabilir
+  const deliveryDateRules = [
+    { type: 'required', message: 'Teslim tarihi zorunludur' },
+    { type: 'before', value: '+3 months', message: 'Teslim tarihi en fazla 3 ay sonra olabilir' }
+  ];
+  ```
+
+###### 3. Örnek Kullanım Senaryosu
+
+  ```javascript
+  // Tecrübe formunda kullanım örneği
+  const formValidator = new FormValidator('#experienceForm', {
+    rules: {
+      start_year: [
+        { type: 'required', message: 'Başlangıç yılı zorunludur' },
+        { type: 'after', value: '1900-01-01', message: 'Geçerli bir başlangıç yılı giriniz' }
+      ],
+      end_year: [
+        { type: 'after', value: 'start_year', message: 'Bitiş yılı başlangıç yılından sonra olmalıdır' }
+      ]
+    }
+  });
+  ```
+
+###### NOT
+
+Referans alınan diğer tarih alanı boş iken validasyon hatası vermez. Yani ilk tarih alanına değer girilip henüz ikinci tarih alanına değer girilmemişse, ikinci alanın girişini bekler.
+
 ### Hata Mesajı Gösterim Modları - ✨ Yeni Özellik
 
 Form doğrulama hatalarının gösterim şeklini özelleştirmek için `errorDisplayMode` seçeneği eklenmiştir. Bu seçenek, hata mesajlarının nasıl gösterileceğini belirleyerek kullanıcı deneyimini iyileştirir.
