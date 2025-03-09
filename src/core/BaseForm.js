@@ -871,7 +871,6 @@ class BaseForm {
             // Verileri form alanlarına doldur
             if (data) {
                 this._fillFormWithData(data, dataConfig.mapping || {});
-                console.log('Form verileri başarıyla yüklendi:', this.formConfig.selector);
             }
 
             return data;
@@ -886,6 +885,7 @@ class BaseForm {
      * @private
      */
     _fillFormWithData(data, mapping) {
+
         const useAllFields = mapping['*'] !== undefined;
 
         // Önce mapping'leri işle
@@ -936,67 +936,75 @@ class BaseForm {
 
         // Orijinal değerleri güncelle
         this.resetOriginalValues();
+
+        // İlk yükleme için hata ve success mesajlarını kaldır
+        Object.values(this.inputs).forEach(input => {
+            if (input) {
+                input.classList.remove(this.successClass);
+                input.classList.remove(this.errorClass);
+            }
+        });
     }
 
-/**
- * Element özelliklerini ayarlar
- * @private
- */
-_setElementAttribute(config, value) {
-    // Config parametrelerini al
-    const { selector, attribute, transform, callback } = config;
-    
-    // Değer tanımsızsa işlem yapma
-    if (value === undefined) return;
-  
-    try {
-      // Önce form içinde ara
-      let elements = Array.from(this.form.querySelectorAll(selector));
-      
-      // Form içinde element bulunamadıysa document genelinde ara
-      if (elements.length === 0) {
-        elements = Array.from(document.querySelectorAll(selector));
-      }
-      
-      if (elements.length === 0) {
-        console.warn(`Selector ile element bulunamadı: ${selector}`);
-        return;
-      }
-      
-      // Her bulunan element için işlem yap
-      elements.forEach(element => {
-        // Dönüştürme fonksiyonu varsa kullan
-        let finalValue = value;
-        if (typeof transform === 'function') {
-          finalValue = transform(value, element);
+    /**
+     * Element özelliklerini ayarlar
+     * @private
+     */
+    _setElementAttribute(config, value) {
+        // Config parametrelerini al
+        const { selector, attribute, transform, callback } = config;
+
+        // Değer tanımsızsa işlem yapma
+        if (value === undefined) return;
+
+        try {
+            // Önce form içinde ara
+            let elements = Array.from(this.form.querySelectorAll(selector));
+
+            // Form içinde element bulunamadıysa document genelinde ara
+            if (elements.length === 0) {
+                elements = Array.from(document.querySelectorAll(selector));
+            }
+
+            if (elements.length === 0) {
+                console.warn(`Selector ile element bulunamadı: ${selector}`);
+                return;
+            }
+
+            // Her bulunan element için işlem yap
+            elements.forEach(element => {
+                // Dönüştürme fonksiyonu varsa kullan
+                let finalValue = value;
+                if (typeof transform === 'function') {
+                    finalValue = transform(value, element);
+                }
+
+                // HTML attribute'u ayarla
+                if (attribute) {
+                    // Özel durumlar
+                    if (attribute === 'innerText') {
+                        element.innerText = finalValue;
+                    } else if (attribute === 'innerHTML') {
+                        element.innerHTML = finalValue;
+                    } else if (attribute === 'value' && element.tagName === 'INPUT') {
+                        element.value = finalValue;
+                        // Change event trigger
+                        element.dispatchEvent(new Event('change', { bubbles: true }));
+                    } else {
+                        // Diğer tüm özellikler
+                        element.setAttribute(attribute, finalValue);
+                    }
+                }
+
+                // Ek işlemler için callback fonksiyonu
+                if (typeof callback === 'function') {
+                    callback(element, value, this.form);
+                }
+            });
+        } catch (error) {
+            console.error(`Element özelliği ayarlanırken hata: ${selector}/${attribute}`, error);
         }
-        
-        // HTML attribute'u ayarla
-        if (attribute) {
-          // Özel durumlar
-          if (attribute === 'innerText') {
-            element.innerText = finalValue;
-          } else if (attribute === 'innerHTML') {
-            element.innerHTML = finalValue;
-          } else if (attribute === 'value' && element.tagName === 'INPUT') {
-            element.value = finalValue;
-            // Change event trigger
-            element.dispatchEvent(new Event('change', { bubbles: true }));
-          } else {
-            // Diğer tüm özellikler
-            element.setAttribute(attribute, finalValue);
-          }
-        }
-        
-        // Ek işlemler için callback fonksiyonu
-        if (typeof callback === 'function') {
-          callback(element, value, this.form);
-        }
-      });
-    } catch (error) {
-      console.error(`Element özelliği ayarlanırken hata: ${selector}/${attribute}`, error);
     }
-  }
 
     /**
      * Input'un değerini atar
@@ -1005,6 +1013,8 @@ _setElementAttribute(config, value) {
     _setInputValue(input, value) {
         if (!input) return;
 
+        // Mevcut değeri sakla
+        const oldValue = input.value;
         switch (input.type) {
             case 'checkbox':
                 input.checked = Boolean(value);
@@ -1034,7 +1044,16 @@ _setElementAttribute(config, value) {
         }
 
         // Input değişikliği olayını tetikle
-        input.dispatchEvent(new Event('change', { bubbles: true }));
+
+        // Önce orijinal değeri güncelle, sonra event tetikle
+        // Bu sayede validateField içindeki kontrol doğru çalışacak
+        input.originalValue = input.value;
+
+        // Değer gerçekten değiştiyse change event'i tetikle
+        if (oldValue !== input.value) {
+            input.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+
     }
 
     /**
