@@ -722,7 +722,92 @@ class BaseForm {
         switch (rule.type) {
             case 'required':
                 return value.length > 0;
+            case 'string':
+                // String tipinde olup olmadığını kontrol et
+                return typeof value === 'string';
+            case 'integer':
+                // Tam sayı tipinde olup olmadığını kontrol et
+                return Number.isInteger(Number(value));
+            case 'size':
+                // Değerin tam olarak belirtilen uzunluğa sahip olması gerekir
+                return String(value).length === Number(rule.value);
+            case 'starts_with':
+                // Değerin belirtilen önekle başlayıp başlamadığını kontrol et
+                return String(value).startsWith(rule.value);
+            case 'between':
+                // Değerin belirli aralıkta olup olmadığını kontrol et
+                // between:min,max formatında olmalı
+                try {
+                    const [min, max] = String(rule.value).split(',').map(Number);
 
+                    // Sayısal alan mı yoksa metin alanı mı kontrol et
+                    const fieldRules = this.rules[fieldName] || [];
+                    const isNumericField = fieldRules.some(r => r.type === 'numeric');
+
+                    if (isNumericField) {
+                        const numValue = Number(value);
+                        return numValue >= min && numValue <= max;
+                    } else {
+                        const strLength = String(value).length;
+                        return strLength >= min && strLength <= max;
+                    }
+                } catch (e) {
+                    console.error('Between validation error:', e);
+                    return false;
+                }
+
+            case 'in':
+                // Değerin belirtilen değerler arasında olup olmadığını kontrol et
+                // in:value1,value2,value3 formatında olmalı
+                try {
+                    const allowedValues = String(rule.value).split(',');
+                    return allowedValues.includes(String(value));
+                } catch (e) {
+                    console.error('In validation error:', e);
+                    return false;
+                }
+
+            case 'not_in':
+                // Değerin belirtilen değerler arasında olmamasını kontrol et
+                // not_in:value1,value2,value3 formatında olmalı
+                try {
+                    const forbiddenValues = String(rule.value).split(',');
+                    return !forbiddenValues.includes(String(value));
+                } catch (e) {
+                    console.error('Not in validation error:', e);
+                    return false;
+                }
+
+            case 'same':
+                // Değerin başka bir alanla aynı olup olmadığını kontrol et
+                try {
+                    const otherField = this.inputs[rule.value];
+                    if (!otherField) return false;
+                    return String(value) === String(otherField.value);
+                } catch (e) {
+                    console.error('Same validation error:', e);
+                    return false;
+                }
+
+            case 'different':
+                // Değerin başka bir alanla farklı olup olmadığını kontrol et
+                try {
+                    const otherField = this.inputs[rule.value];
+                    if (!otherField) return true; // Diğer alan yoksa farklı kabul et
+                    return String(value) !== String(otherField.value);
+                } catch (e) {
+                    console.error('Different validation error:', e);
+                    return false;
+                }
+
+            case 'accepted':
+                // Değerin kabul edilebilir olup olmadığını kontrol et
+                // true, 'yes', 'on', 1 gibi değerler kabul edilir
+                return [true, 'true', 'yes', 'on', 1, '1'].includes(value);
+
+            case 'not_accepted':
+                // Değerin reddedilmiş olup olmadığını kontrol et (accepted'ın tersi)
+                return ![true, 'true', 'yes', 'on', 1, '1'].includes(value);
             case 'email':
                 return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 
@@ -765,78 +850,78 @@ class BaseForm {
             case 'date':
                 return !isNaN(Date.parse(value));
 
-                case 'before':
-                    case 'after':
-                        try {
-                            let compareDate;
-                            
-                            // 1. Başka bir alan değerine referans ise
-                            if (this.inputs[rule.value]) {
-                                // Eğer referans alınan input boşsa, validasyonu geçerli say
-                                if (!this.inputs[rule.value].value.trim()) {
-                                    return true;
-                                }
-                                compareDate = new Date(this.inputs[rule.value].value);
-                                
-                                // Eğer geçersiz bir tarih ise, validasyonu geçerli say
-                                if (isNaN(compareDate.getTime())) {
-                                    return true;
-                                }
-                            }
-                            // 2. "today" ise bugünün tarihi
-                            else if (rule.value === 'today') {
-                                compareDate = new Date();
-                            }
-                            // 3. Göreceli tarih ifadesi ise (+1 year, -3 months gibi)
-                            else if (rule.value.startsWith('+') || rule.value.startsWith('-')) {
-                                const now = new Date();
-                                const match = rule.value.match(/([+-])(\d+)\s*(\w+)/);
-                                
-                                if (match) {
-                                    const [, sign, amount, unit] = match;
-                                    const numAmount = parseInt(amount) * (sign === '+' ? 1 : -1);
-                                    
-                                    switch(unit.toLowerCase()) {
-                                        case 'day':
-                                        case 'days':
-                                            now.setDate(now.getDate() + numAmount);
-                                            break;
-                                        case 'month':
-                                        case 'months':
-                                            now.setMonth(now.getMonth() + numAmount);
-                                            break;
-                                        case 'year':
-                                        case 'years':
-                                            now.setFullYear(now.getFullYear() + numAmount);
-                                            break;
-                                    }
-                                    
-                                    compareDate = now;
-                                } else {
-                                    compareDate = new Date(rule.value);
-                                }
-                            }
-                            // 4. Normal tarih ifadesi
-                            else {
-                                compareDate = new Date(rule.value);
-                            }
-                            
-                            const dateValue = new Date(value);
-                            
-                            // Eğer girilen değer geçersiz bir tarih ise, validasyonu başarısız say
-                            if (isNaN(dateValue.getTime())) {
-                                return false;
-                            }
-                            
-                            if (rule.type === 'before') {
-                                return dateValue < compareDate;
-                            } else { // after
-                                return dateValue > compareDate;
-                            }
-                        } catch (e) {
-                            console.error('Tarih validasyon hatası:', e);
-                            return false;
+            case 'before':
+            case 'after':
+                try {
+                    let compareDate;
+
+                    // 1. Başka bir alan değerine referans ise
+                    if (this.inputs[rule.value]) {
+                        // Eğer referans alınan input boşsa, validasyonu geçerli say
+                        if (!this.inputs[rule.value].value.trim()) {
+                            return true;
                         }
+                        compareDate = new Date(this.inputs[rule.value].value);
+
+                        // Eğer geçersiz bir tarih ise, validasyonu geçerli say
+                        if (isNaN(compareDate.getTime())) {
+                            return true;
+                        }
+                    }
+                    // 2. "today" ise bugünün tarihi
+                    else if (rule.value === 'today') {
+                        compareDate = new Date();
+                    }
+                    // 3. Göreceli tarih ifadesi ise (+1 year, -3 months gibi)
+                    else if (rule.value.startsWith('+') || rule.value.startsWith('-')) {
+                        const now = new Date();
+                        const match = rule.value.match(/([+-])(\d+)\s*(\w+)/);
+
+                        if (match) {
+                            const [, sign, amount, unit] = match;
+                            const numAmount = parseInt(amount) * (sign === '+' ? 1 : -1);
+
+                            switch (unit.toLowerCase()) {
+                                case 'day':
+                                case 'days':
+                                    now.setDate(now.getDate() + numAmount);
+                                    break;
+                                case 'month':
+                                case 'months':
+                                    now.setMonth(now.getMonth() + numAmount);
+                                    break;
+                                case 'year':
+                                case 'years':
+                                    now.setFullYear(now.getFullYear() + numAmount);
+                                    break;
+                            }
+
+                            compareDate = now;
+                        } else {
+                            compareDate = new Date(rule.value);
+                        }
+                    }
+                    // 4. Normal tarih ifadesi
+                    else {
+                        compareDate = new Date(rule.value);
+                    }
+
+                    const dateValue = new Date(value);
+
+                    // Eğer girilen değer geçersiz bir tarih ise, validasyonu başarısız say
+                    if (isNaN(dateValue.getTime())) {
+                        return false;
+                    }
+
+                    if (rule.type === 'before') {
+                        return dateValue < compareDate;
+                    } else { // after
+                        return dateValue > compareDate;
+                    }
+                } catch (e) {
+                    console.error('Tarih validasyon hatası:', e);
+                    return false;
+                }
 
             case 'regex':
                 try {

@@ -191,6 +191,7 @@ Veri doğrulama kuralları ile:
     useFormData: true,         // Form verilerini FormData olarak göndermeye zorlar. (varsayılan true'dur. false yapılırsa JSON formatında gönderir.)
     // Axios ayarları da buradan yapılabilir. (headers, timeout, etc.)
     disableNotifications: false, // True yapılırsa tüm bildirimleri devre dışı bırakır.(sweetalert ve console)
+    allowApiMessages: true, // API yanıtında gelen başarı mesajların görüntülenmesini sağlar. (varsayılan true'dur.)
     validation: true,          // Validasyon kontrolü
     validationOptions: {
       showErrors: true,         // Hata mesajlarını gösterir
@@ -260,6 +261,7 @@ Veri doğrulama kuralları ile:
     preventRedirect: true,     // Otomatik yönlendirmeyi engeller
     tokenName: 'token', // tokenin adı (localStorage'da kullanılır)
     tokenKey: 'token', // tokenin key'i (doğrudan header'da kullanılır)
+    allowApiMessages: true, // API yanıtında gelen başarı mesajların görüntülenmesini sağlar. (varsayılan true'dur.)
     clearToken: true, // token temizleme (tokenName varsa localStorage'da silinir)
     errors: {
       redirect: '/login', 
@@ -432,6 +434,18 @@ API Form Integrator aşağıdaki validasyon kurallarını destekler ve her biri 
 - `image`: Resim dosyası kontrolü
 - `mimes:ext1,ext2`: Belirli dosya uzantıları
 - `dimensions:params`: Resim boyutları kontrolü
+- `integer`: Tam sayı kontrolü
+- `string`: String kontrolü
+- `size:x`: Belirli uzunlukta olması gerekir
+- `starts_with:string`: Belirli string ile başlaması gerekir
+- `between:x,y`: Belirli aralıkta olması gerekir
+- `in:value1,value2`: Belirli değerler arasında olması gerekir
+- `not_in:value1,value2`: Belirli değerler arasında olmaması gerekir
+- `same:field`: Aynı değer olması gerekir
+- `different:field`: Farklı değer olması gerekir
+- `accepted`: Kabul edilir
+- `not_accepted`: Kabul edilmez
+
 
 #### Geliştirilmiş Tarih Validasyonu - ✨ Yeni Özellik
 
@@ -980,6 +994,8 @@ Global hata yönetimi, API isteklerinde otomatik olarak uygulanır:
       - `transform`: Veriyi işlemek için dönüştürme fonksiyonu
       - `callback`: Veri atandıktan sonra çalışacak özel fonksiyon
     - `*`: Tüm form alanlarını otomatik eşleştirme
+- **allowApiMessages parametresi:**  
+  API yanıtında gelen mesajların görüntülenmesini sağlar. (varsayılan true'dur.)
   
 ## 🔍 Örnekler
 
@@ -1087,6 +1103,7 @@ hızlı konfig ayarlarını (quick config) merge edip dinamik olarak form sını
      validation: true,
      preventRedirect: true,
      sweetalert2: true,
+     allowApiMessages: false, // API yanıtında gelen başarı mesajların görüntülenmesini devre dışı bırakır.
      disableNotifications: true, // True yapılırsa tüm bildirimleri devre dışı bırakır.(sweetalert ve console)
       // ShowConfirm ayarları - yeni eklenen
      showConfirm: { // Kullanıcıdan onay ister.

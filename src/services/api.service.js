@@ -131,8 +131,11 @@ export default class ApiService {
 
             // Güvenli erişim için optional chaining kullanıyoruz.
             // Eğer response.data.message tanımlı ise onu, değilse response.config.success?.message kullanılır.
-            const successMessage = response.data.message ??
-                response.config.actions?.success?.message ??
+
+            const successMessage = 
+            (response.config.allowApiMessages ?? this.apiConfig.allowApiMessages ?? true) && response.data.message
+                ? response.data.message
+                : response.config.actions?.success?.message ??
                 this.apiConfig.success?.message ??
                 "İstek başarılı bir şekilde gerçekleştirildi.";
 

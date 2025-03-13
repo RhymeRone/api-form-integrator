@@ -21,6 +21,7 @@ export const integratorConfig = {
       preventRedirect: true, // Başarılı istekten sonra yönlendirmeyi engeller
       sweetalert2: true, // SweetAlert2 kullanımını etkinleştirir false ile console hataları gösterir.
       disableNotifications: false, // True yapılırsa tüm bildirimleri devre dışı bırakır.(sweetalert ve console)
+      allowApiMessages: true, // API yanıtında gelen mesajların görüntülenmesini sağlar. (varsayılan true'dur.)
    // tokenKey: 'token', // Token anahtarı (header'da token değeri), tokenName'e göre önceliklidir.
    // tokenName: 'token', // Token adı (localStorage'da token adı, dot notation desteği bulunmaktadır örneğin data.token.tokenName. tokenKey değeri girilirse bu alan gerekli değildir.)
       // -> tokenName ne işe yarar? 
