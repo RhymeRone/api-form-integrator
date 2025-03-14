@@ -433,7 +433,7 @@ API Form Integrator aşağıdaki validasyon kurallarını destekler ve her biri 
 - `file`: Dosya tipi kontrolü
 - `image`: Resim dosyası kontrolü
 - `mimes:ext1,ext2`: Belirli dosya uzantıları
-- `dimensions:params`: Resim boyutları kontrolü
+- `dimensions`: Resim boyutları için detaylı kontrol (genişlik, yükseklik, oran)
 - `integer`: Tam sayı kontrolü
 - `string`: String kontrolü
 - `size:x`: Belirli uzunlukta olması gerekir
@@ -445,6 +445,7 @@ API Form Integrator aşağıdaki validasyon kurallarını destekler ve her biri 
 - `different:field`: Farklı değer olması gerekir
 - `accepted`: Kabul edilir
 - `not_accepted`: Kabul edilmez
+- `array`: Dizi tipinde veri kontrolü
 
 
 #### Geliştirilmiş Tarih Validasyonu - ✨ Yeni Özellik

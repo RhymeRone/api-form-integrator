@@ -811,28 +811,6 @@ class BaseForm {
             case 'email':
                 return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 
-            case 'min':
-                // Sayısal alan mı yoksa metin alanı mı kontrol et
-                const fieldRules = this.rules[fieldName] || [];
-                const isNumericField = fieldRules.some(r => r.type === 'numeric');
-
-                if (isNumericField) {
-                    return Number(value) >= Number(rule.value);
-                } else {
-                    return String(value).length >= Number(rule.value);
-                }
-
-            case 'max':
-                // Sayısal alan mı yoksa metin alanı mı kontrol et
-                const maxFieldRules = this.rules[fieldName] || [];
-                const isMaxNumericField = maxFieldRules.some(r => r.type === 'numeric');
-
-                if (isMaxNumericField) {
-                    return Number(value) <= Number(rule.value);
-                } else {
-                    return String(value).length <= Number(rule.value);
-                }
-
             case 'numeric':
                 return /^[0-9]+$/.test(value);
 
@@ -952,13 +930,235 @@ class BaseForm {
             case 'nullable':
                 return true;
 
+            case 'array':
+                // Input değeri bir <input type="file" multiple> ise files koleksiyonunu kontrol et
+                if (this.inputs[fieldName]?.type === 'file' && this.inputs[fieldName].multiple) {
+                    return this.inputs[fieldName].files && this.inputs[fieldName].files.length > 0;
+                }
+                // Normal veri için Array.isArray kontrolü yap
+                return Array.isArray(value) ||
+                    (value && typeof value === 'object' && value[Symbol.iterator]) ||
+                    (value && typeof value === 'string' && value.startsWith('[') && value.endsWith(']'));
+
             case 'file':
+                // Dosya input kontrolü
+                const fileInput = this.inputs[fieldName];
+                if (!fileInput || fileInput.type !== 'file') {
+                    return false;
+                }
+
+                // FileList veya seçilen dosya kontrolü
+                return fileInput.files && fileInput.files.length > 0;
+
             case 'image':
-            case 'mimes':
-            case 'dimensions':
-                // Dosya validasyonları için şimdilik true döndür
-                // Gerçek uygulamada bu kurallar için özel kontroller yapılmalı
+                // Görsel dosya kontrolü
+                const imageInput = this.inputs[fieldName];
+                if (!imageInput || imageInput.type !== 'file' || !imageInput.files || imageInput.files.length === 0) {
+                    return false;
+                }
+
+                // Her dosya için mime type kontrolü
+                for (let i = 0; i < imageInput.files.length; i++) {
+                    const file = imageInput.files[i];
+                    const mimeType = file.type;
+
+                    // Kabul edilen görsel mime tipleri
+                    const acceptedImageTypes = [
+                        'image/jpeg', 'image/jpg', 'image/png', 'image/gif',
+                        'image/svg+xml', 'image/webp', 'image/bmp', 'image/tiff'
+                    ];
+
+                    if (!acceptedImageTypes.includes(mimeType)) {
+                        return false;
+                    }
+                }
+
                 return true;
+
+            case 'mimes':
+                // Dosya uzantıları kontrolü
+                const mimesInput = this.inputs[fieldName];
+                if (!mimesInput || mimesInput.type !== 'file' || !mimesInput.files || mimesInput.files.length === 0) {
+                    return false;
+                }
+
+                // İzin verilen uzantılar
+                const allowedExtensions = rule.value.split(',').map(ext => ext.trim().toLowerCase());
+
+                // Her dosya için uzantı kontrolü
+                for (let i = 0; i < mimesInput.files.length; i++) {
+                    const file = mimesInput.files[i];
+                    const fileName = file.name;
+                    const fileExt = fileName.substring(fileName.lastIndexOf('.') + 1).toLowerCase();
+
+                    // MIME tipi kontrolü
+                    const fileMimeType = file.type.toLowerCase();
+                    const mimeMatch = allowedExtensions.some(ext => {
+                        // Doğrudan MIME tipi eşleşmesi
+                        if (fileMimeType === ext || fileMimeType === `image/${ext}` || fileMimeType === `application/${ext}`) {
+                            return true;
+                        }
+                        // Uzantı kontrolü
+                        return fileExt === ext;
+                    });
+
+                    if (!mimeMatch) {
+                        return false;
+                    }
+                }
+
+                return true;
+
+            case 'dimensions':
+                // Görsel boyut kontrolü
+                const dimensionsInput = this.inputs[fieldName];
+                if (!dimensionsInput || dimensionsInput.type !== 'file' || !dimensionsInput.files || dimensionsInput.files.length === 0) {
+                    return false;
+                }
+
+                // Boyut kurallarını parse et
+                // Örnek: min_width=100,max_width=1000,min_height=100,max_height=1000,width=500,height=300,ratio=16/9
+                const dimensionRules = {};
+                rule.value.split(',').forEach(dimension => {
+                    const [key, value] = dimension.split('=');
+                    if (key && value) {
+                        dimensionRules[key.trim()] = value.trim();
+                    }
+                });
+
+                // Görsel dosyası için boyut kontrolü
+                const file = dimensionsInput.files[0]; // İlk dosyayı kontrol et
+
+                // Görsel boyutlarını kontrol etmek için bir Promise döndür
+                // Not: Burada senkron bir fonksiyon içinde asenkron işlem yapıyoruz
+                // Bu nedenle kontrol daha karmaşık, gerçek uygulamalarda bir çözüm bulmak gerekir
+                return new Promise((resolve) => {
+                    const img = new Image();
+                    const objectURL = URL.createObjectURL(file);
+
+                    img.onload = function () {
+                        URL.revokeObjectURL(objectURL);
+
+                        const width = img.width;
+                        const height = img.height;
+                        let valid = true;
+
+                        // Minimum genişlik
+                        if (dimensionRules.min_width && width < parseInt(dimensionRules.min_width)) {
+                            valid = false;
+                        }
+
+                        // Maksimum genişlik
+                        if (dimensionRules.max_width && width > parseInt(dimensionRules.max_width)) {
+                            valid = false;
+                        }
+
+                        // Minimum yükseklik
+                        if (dimensionRules.min_height && height < parseInt(dimensionRules.min_height)) {
+                            valid = false;
+                        }
+
+                        // Maksimum yükseklik
+                        if (dimensionRules.max_height && height > parseInt(dimensionRules.max_height)) {
+                            valid = false;
+                        }
+
+                        // Tam genişlik
+                        if (dimensionRules.width && width !== parseInt(dimensionRules.width)) {
+                            valid = false;
+                        }
+
+                        // Tam yükseklik
+                        if (dimensionRules.height && height !== parseInt(dimensionRules.height)) {
+                            valid = false;
+                        }
+
+                        // Oran
+                        if (dimensionRules.ratio) {
+                            const [ratioWidth, ratioHeight] = dimensionRules.ratio.split('/').map(Number);
+                            const imageRatio = width / height;
+                            const targetRatio = ratioWidth / ratioHeight;
+
+                            // Küçük bir tolerans değeri (0.01) kullan
+                            if (Math.abs(imageRatio - targetRatio) > 0.01) {
+                                valid = false;
+                            }
+                        }
+
+                        resolve(valid);
+                    };
+
+                    img.onerror = function () {
+                        URL.revokeObjectURL(objectURL);
+                        resolve(false);
+                    };
+
+                    img.src = objectURL;
+                });
+
+            // min case'ini güncelleyin (array desteği için)
+            case 'min':
+                // Array tipinde mi kontrol et
+                const minFieldRules = this.rules[fieldName] || [];
+                const isArrayField = minFieldRules.some(r => r.type === 'array');
+                const isNumericField = minFieldRules.some(r => r.type === 'numeric');
+
+                if (isArrayField) {
+                    // Dosya input için
+                    if (this.inputs[fieldName]?.type === 'file') {
+                        return this.inputs[fieldName].files && this.inputs[fieldName].files.length >= Number(rule.value);
+                    }
+                    // Normal array için
+                    if (Array.isArray(value)) {
+                        return value.length >= Number(rule.value);
+                    }
+                    // JSON string olarak array
+                    if (typeof value === 'string' && value.startsWith('[') && value.endsWith(']')) {
+                        try {
+                            const arr = JSON.parse(value);
+                            return Array.isArray(arr) && arr.length >= Number(rule.value);
+                        } catch {
+                            return false;
+                        }
+                    }
+                    return false;
+                } else if (isNumericField) {
+                    return Number(value) >= Number(rule.value);
+                } else {
+                    return String(value).length >= Number(rule.value);
+                }
+
+            // max case'ini de güncelleyelim (array desteği için)
+            case 'max':
+                // Array tipinde mi kontrol et
+                const maxFieldRules = this.rules[fieldName] || [];
+                const isMaxArrayField = maxFieldRules.some(r => r.type === 'array');
+                const isMaxNumericField = maxFieldRules.some(r => r.type === 'numeric');
+
+                if (isMaxArrayField) {
+                    // Dosya input için
+                    if (this.inputs[fieldName]?.type === 'file') {
+                        return this.inputs[fieldName].files && this.inputs[fieldName].files.length <= Number(rule.value);
+                    }
+                    // Normal array için
+                    if (Array.isArray(value)) {
+                        return value.length <= Number(rule.value);
+                    }
+                    // JSON string olarak array
+                    if (typeof value === 'string' && value.startsWith('[') && value.endsWith(']')) {
+                        try {
+                            const arr = JSON.parse(value);
+                            return Array.isArray(arr) && arr.length <= Number(rule.value);
+                        } catch {
+                            return false;
+                        }
+                    }
+                    return false;
+                } else if (isMaxNumericField) {
+                    return Number(value) <= Number(rule.value);
+                } else {
+                    return String(value).length <= Number(rule.value);
+                }
 
             default:
                 return true;
