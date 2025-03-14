@@ -209,10 +209,17 @@ export default class FormFactory {
                             input.classList.remove(this.errorClass);
                             input.classList.remove(this.successClass);
 
-                            // Inputun yanındaki hata mesajı elementini kaldır (inline mod kullanıldıysa)
-                            const errorElement = input.nextElementSibling;
-                            if (errorElement && errorElement.className === 'invalid-feedback') {
-                                errorElement.remove();
+                            const inputGroup = input.closest('.input-group');
+                            if (inputGroup) {
+                                // Input-group içindeki tüm invalid-feedback elementlerini kaldır
+                                const errorElements = inputGroup.querySelectorAll('.invalid-feedback');
+                                errorElements.forEach(el => el.remove());
+                            } else {
+                                // Normal davranış - input'un yanındaki elementi kontrol et
+                                const existingError = input.nextElementSibling;
+                                if (existingError && existingError.className === 'invalid-feedback') {
+                                    existingError.remove();
+                                }
                             }
                         }
                     });
@@ -329,9 +336,17 @@ export default class FormFactory {
                                 }
 
                                 // Önce mevcut hata mesajını kaldır
-                                const existingError = input.nextElementSibling;
-                                if (existingError && existingError.className === 'invalid-feedback') {
-                                    existingError.remove();
+                                const inputGroup = input.closest('.input-group');
+                                if (inputGroup) {
+                                    // Input-group içindeki tüm invalid-feedback elementlerini kaldır
+                                    const errorElements = inputGroup.querySelectorAll('.invalid-feedback');
+                                    errorElements.forEach(el => el.remove());
+                                } else {
+                                    // Normal davranış - input'un yanındaki elementi kontrol et
+                                    const existingError = input.nextElementSibling;
+                                    if (existingError && existingError.className === 'invalid-feedback') {
+                                        existingError.remove();
+                                    }
                                 }
 
                                 const errorElement = document.createElement('div');
@@ -344,7 +359,14 @@ export default class FormFactory {
                                     errorElement.style.color = this.errorColor;
                                 }
 
-                                input.parentNode.insertBefore(errorElement, input.nextElementSibling);
+                                // İnput-group içinde mi kontrol et
+                                if (inputGroup) {
+                                    // Input-group'un sonuna ekle
+                                    inputGroup.appendChild(errorElement);
+                                } else {
+                                    // Normal akış - input'un hemen yanına ekle
+                                    input.parentNode.insertBefore(errorElement, input.nextElementSibling);
+                                }
                             }
                         }
                     });
@@ -387,16 +409,16 @@ export default class FormFactory {
             resetFormValidationState() {
                 try {
                     // Hata gösterim modunu al
-                    const errorDisplayMode = this.config?.validationOptions?.errorDisplayMode ?? 
-                        APP_CONFIG.UI.validation.errorDisplayMode ?? 
+                    const errorDisplayMode = this.config?.validationOptions?.errorDisplayMode ??
+                        APP_CONFIG.UI.validation.errorDisplayMode ??
                         'inline';
-            
+
                     // Form elementlerini seç
                     const formElements = this.form.querySelectorAll('input, select, textarea');
-                    
+
                     formElements.forEach(element => {
                         if (!element) return;
-            
+
                         // Validation class'larını temizle
                         if (this.errorClass) {
                             element.classList.remove(this.errorClass);
@@ -404,20 +426,28 @@ export default class FormFactory {
                         if (this.successClass) {
                             element.classList.remove(this.successClass);
                         }
-            
+
                         // Input tipine göre özel işlemler
                         const isCheckboxOrRadio = element.type === 'checkbox' || element.type === 'radio';
-                        
+
                         if (!isCheckboxOrRadio) {
                             // Inline mod için hata mesajlarını temizle
                             if (errorDisplayMode === 'inline') {
-                                let nextElement = element.nextElementSibling;
-                                while (nextElement && nextElement.className === 'invalid-feedback') {
-                                    nextElement.remove();
-                                    nextElement = element.nextElementSibling;
+                                const inputGroup = element.closest('.input-group');
+                                if (inputGroup) {
+                                    // Input-group içindeki tüm invalid-feedback elementlerini kaldır
+                                    const errorElements = inputGroup.querySelectorAll('.invalid-feedback');
+                                    errorElements.forEach(el => el.remove());
+                                } else {
+                                    // Normal davranış - yanındaki elementleri kontrol et
+                                    let nextElement = element.nextElementSibling;
+                                    while (nextElement && nextElement.className === 'invalid-feedback') {
+                                        nextElement.remove();
+                                        nextElement = element.nextElementSibling;
+                                    }
                                 }
                             }
-            
+
                             // Pop mod için popup'ları temizle
                             if (errorDisplayMode === 'pop') {
                                 let popup = document.getElementById(`error-popup-${element.name}`);
@@ -430,12 +460,12 @@ export default class FormFactory {
                                 }
                             }
                         }
-            
+
                         // Ek validation-related attribute'ları temizle
                         element.removeAttribute('aria-invalid');
                         element.removeAttribute('aria-describedby');
                     });
-            
+
                     // Tüm kalan popup'ları temizle (pop mod için)
                     document.querySelectorAll('.api-form-error-popup').forEach(popup => {
                         // Event listener'ları temizle
@@ -444,12 +474,12 @@ export default class FormFactory {
                         // Elementi kaldır
                         newPopup.remove();
                     });
-            
+
                     // Stil elementlerini temizle
                     document.querySelectorAll('style[id^="error-popup-"]').forEach(style => {
                         style.remove();
                     });
-            
+
                 } catch (error) {
                     console.error('Form validation state temizleme hatası:', error);
                 }

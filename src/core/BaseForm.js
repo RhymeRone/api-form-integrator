@@ -354,9 +354,18 @@ class BaseForm {
 
         // Sadece inline mod için mesaj elementini kaldır
         if (this.errorDisplayMode !== 'pop') {
-            const nextElement = input.nextElementSibling;
-            if (nextElement && nextElement.className === 'invalid-feedback') {
-                nextElement.remove();
+            // İnput-group içinde mi kontrol et
+            const inputGroup = input.closest('.input-group');
+            if (inputGroup) {
+                // Input-group içindeki tüm invalid-feedback sınıfına sahip elementleri kaldır
+                const errorElements = inputGroup.querySelectorAll('.invalid-feedback');
+                errorElements.forEach(el => el.remove());
+            } else {
+                // Normal davranış - input'un hemen yanındaki elementi kontrol et
+                const nextElement = input.nextElementSibling;
+                if (nextElement && nextElement.className === 'invalid-feedback') {
+                    nextElement.remove();
+                }
             }
         }
 
@@ -555,7 +564,15 @@ class BaseForm {
             errorElement.style.color = this.errorColor;
         }
 
-        input.parentNode.insertBefore(errorElement, input.nextElementSibling);
+        // İnput-group içinde mi kontrol et
+        const inputGroup = input.closest('.input-group');
+        if (inputGroup) {
+            // Input-group'un sonuna ekle
+            inputGroup.appendChild(errorElement);
+        } else {
+            // Normal akış - input'un hemen yanına ekle
+            input.parentNode.insertBefore(errorElement, input.nextElementSibling);
+        }
     }
 
     async validateForm() {
@@ -572,9 +589,20 @@ class BaseForm {
             input.classList.remove('api-form-validation-error');
 
             // Inline moddaki hata mesajlarını kaldır
-            const errorElement = input.nextElementSibling;
-            if (errorElement && errorElement.className === 'invalid-feedback') {
-                errorElement.remove();
+            if (this.errorDisplayMode !== 'pop') {
+                // İnput-group içinde mi kontrol et
+                const inputGroup = input.closest('.input-group');
+                if (inputGroup) {
+                    // Input-group içindeki tüm invalid-feedback elementlerini kaldır
+                    const errorElements = inputGroup.querySelectorAll('.invalid-feedback');
+                    errorElements.forEach(el => el.remove());
+                } else {
+                    // Normal davranış - input'un yanındaki elementi kontrol et
+                    const nextElement = input.nextElementSibling;
+                    if (nextElement && nextElement.className === 'invalid-feedback') {
+                        nextElement.remove();
+                    }
+                }
             }
 
             // Pop modundaki popup'ları tamamen kaldır
