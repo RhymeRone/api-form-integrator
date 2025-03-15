@@ -601,6 +601,85 @@ Pop modu, hata durumlarını göstermek için DOM'a geçici baloncuk elementleri
 
 Bu yaklaşım, sayfa akışını ve hizalamasını bozmadan kullanıcıya görsel geri bildirim sağlar. Özellikle sıkışık form düzenlerinde, yerleşim düzeni sorunlarını önlemek için idealdir.
 
+### Harici Kütüphaneler ile Form Validasyonu
+
+#### Sorun
+
+FormFactory ve BaseForm altyapısında, harici JavaScript kütüphaneleri (ikon seçiciler, tarih seçiciler, vb.) bir input değerini programatik olarak değiştirdiğinde, validasyon sistemi bu değişikliği otomatik olarak algılamaz. Bu durum, form alanlarının doğrulanmamasına ve kullanıcı deneyiminin olumsuz etkilenmesine neden olur.
+
+#### Çözüm
+
+Harici bir kütüphane input değerini değiştirdiğinde, manuel olarak bir `input` olayı tetikleyerek validasyon sistemini haberdar etmelisiniz:
+
+  ```javascript
+  // 1. Harici kütüphane değeri değiştirir
+  inputElement.value = "yeni değer";
+  
+  // 2. Manuel olarak input olayı tetikle
+  const event = new Event('input', { bubbles: true });
+  inputElement.dispatchEvent(event);
+  ```
+
+#### Örnek Kullanımlar
+
+##### İkon Seçici
+
+  ```javascript
+  iconPicker.onSelect = function(iconData) {
+    // Değeri değiştir
+    iconInput.value = iconData.iconClass;
+    
+    // Validasyonu tetikle
+    const event = new Event('input', { bubbles: true });
+    iconInput.dispatchEvent(event);
+  };
+  ```
+
+##### Tarih Seçici
+
+  ```javascript
+  datepicker.on('change', function(date) {
+    // Değeri değiştir
+    dateInput.value = date.format('YYYY-MM-DD');
+    
+    // Validasyonu tetikle
+    const event = new Event('input', { bubbles: true });
+    dateInput.dispatchEvent(event);
+  });
+  ```
+
+##### WYSIWYG Editör
+
+  ```javascript
+  editor.on('change', function() {
+    // Değeri değiştir
+    textareaElement.value = editor.getContent();
+    
+    // Validasyonu tetikle
+    const event = new Event('input', { bubbles: true });
+    textareaElement.dispatchEvent(event);
+  });
+  ```
+
+#### Önemli Noktalar
+
+- Event tetikleme, değer değiştirildikten **hemen sonra** yapılmalıdır
+- `bubbles: true` parametresi önemlidir, olay yukarı doğru yayılmalıdır
+- Aynı değer birden fazla kez ayarlanıyorsa, her seferinde event tetiklenmelidir
+- Bu yaklaşım tüm modern tarayıcılarda desteklenir
+
+#### Ne Zaman Kullanılmalı?
+
+Bu yaklaşımı, değeri JavaScript ile değiştiren tüm harici bileşenlerle çalışırken kullanın:
+
+- İkon seçiciler
+- Tarih/saat seçiciler
+- Renk seçiciler
+- WYSIWYG editörler
+- Otomatik tamamlama araçları
+- Dosya yükleyiciler
+- Range slider'lar
+
 ### showConfirm Özelliği - ✨ Yeni Özellik
 
 `showConfirm` özelliği, API istekleri gerçekleştirilmeden önce kullanıcıdan onay almanızı sağlar. Silme, ödeme veya kritik değişiklikler öncesinde kullanıcıya "Emin misiniz?" diyaloğu gösterir.
@@ -1248,6 +1327,17 @@ console.log(mergedConfig);
 - **Soru:** Validasyon kuralları nasıl tanımlanır?  
   **Cevap:** Form alanları için validasyon kuralları, fields objesi içinde rules array'i ile tanımlanır. Örneğin: `email: { rules: ['required', 'email'] }`
 
+- **Soru:** Harici JavaScript kütüphaneleri (ikon seçiciler, tarih seçiciler vb.) ile değer değiştiğinde validasyon nasıl tetiklenir?  
+  **Cevap:** Harici bir kütüphane input değerini değiştirdiğinde, manuel olarak bir `input` olayı tetiklemeniz gerekir:
+  ```javascript
+  // 1. Harici kütüphane değeri değiştirir
+  inputElement.value = "yeni değer";
+  
+  // 2. Manuel olarak input olayı tetikle
+  const event = new Event('input', { bubbles: true });
+  inputElement.dispatchEvent(event);
+  ```
+  
 - **Soru:** CSRF token yönetimi nasıl çalışır?  
   **Cevap:** CSRF token'ları otomatik olarak cookie'den algılanır ve her API isteğine eklenir. Form gönderimlerinde token otomatik olarak yenilenir.
 
