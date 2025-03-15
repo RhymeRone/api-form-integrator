@@ -1249,11 +1249,24 @@ class BaseForm {
             // Verileri form alanlarına doldur
             if (data) {
                 this._fillFormWithData(data, dataConfig.mapping || {});
+                // 1. Önce options içinde callback'i kontrol et (öncelikli)
+                // 2. Yoksa getData yapılandırmasında callback'i kontrol et
+                const onSuccessCallback = options.onLoadSuccess || dataConfig.onLoadSuccess;
+
+                if (typeof onSuccessCallback === 'function') {
+                    onSuccessCallback(data, this);
+                }
             }
 
             return data;
         } catch (error) {
             console.error('Form verileri yüklenirken hata:', error);
+            // Hata callback'ini benzer şekilde kontrol et
+            const onErrorCallback = options.onLoadError || dataConfig.onLoadError;
+
+            if (typeof onErrorCallback === 'function') {
+                onErrorCallback(error, this);
+            }
             throw error;
         }
     }

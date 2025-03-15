@@ -802,9 +802,17 @@ Form yüklendiğinde otomatik doldurma yerine bir butona tıklama ile veri yükl
     selector: '#userForm',
     getData: {
       endpoint: '/api/users/{id}',
-      autoFill: false
+      autoFill: false,
+      onLoadSuccess: (data) => {
+        console.log('Kullanıcı verileri yüklendi:', data);
+      },
+      onLoadError: (error) => {
+        console.error('Kullanıcı verileri yükleme hatası:', error);
+      }
     }
   };
+
+
 
   // Butona tıklanınca formu doldur
   document.getElementById('loadDataBtn').addEventListener('click', () => {
@@ -815,6 +823,20 @@ Form yüklendiğinde otomatik doldurma yerine bir butona tıklama ile veri yükl
       }
     });
   });
+
+  // OnLoadSuccess ve OnLoadError callback'i çağır
+  userForm.loadFormData({
+    params: {
+      id: userId
+    },
+    onLoadSuccess: (data) => {
+      console.log('Kullanıcı verileri yüklendi:', data);
+    },
+    onLoadError: (error) => {
+      console.error('Kullanıcı verileri yükleme hatası:', error);
+    }
+  });
+  
   ```
 
 #### Alan Eşleştirme (Mapping)
@@ -925,6 +947,12 @@ Aynı veriyi birden fazla yerde kullanmak için dizi yapısı:
   ```javascript
   getData: {
     endpoint: '/api/users/{id}',
+    onLoadSuccess: (data) => {
+      console.log('Kullanıcı verileri yüklendi:', data);
+    },
+    onLoadError: (error) => {
+      console.error('Kullanıcı verileri yükleme hatası:', error);
+    },
     mapping: {
       'status': {
         selector: '.status-badge',
@@ -948,6 +976,20 @@ Aynı veriyi birden fazla yerde kullanmak için dizi yapısı:
       }
     }
   }
+
+  // Kullanımı
+  userForm.loadFormData({
+    params: {
+      id: userId
+    },
+    onLoadSuccess: (data) => {
+      console.log('Kullanıcı verileri yüklendi:', data);
+    },
+    onLoadError: (error) => {
+      console.error('Kullanıcı verileri yükleme hatası:', error);
+    }
+  });
+  
   ```
 
 #### Programatik Kullanım
@@ -983,6 +1025,8 @@ API Form Integrator API'si üzerinden form verilerini yükleme:
 - Veri yüklendikten sonra formun orijinal değerleri güncellenir, böylece değişiklik takibi doğru şekilde çalışır
 - Form dışındaki elementleri güncellemek için form dışında selektor kullanılabilir
 - Kompleks işlemler için callback fonksiyonları kullanılabilir
+- `onLoadSuccess` ve `onLoadError` callback'leri, form yüklendiğinde veya hata olduğunda çalışır
+- `onLoadSuccess` ve `onLoadError` callback'leri, `getData` veya `loadFormData` yapılandırmasında da tanımlanabilir
 
 ### Helper Fonksiyonlar
 ```javascript
@@ -1337,7 +1381,7 @@ console.log(mergedConfig);
   const event = new Event('input', { bubbles: true });
   inputElement.dispatchEvent(event);
   ```
-  
+
 - **Soru:** CSRF token yönetimi nasıl çalışır?  
   **Cevap:** CSRF token'ları otomatik olarak cookie'den algılanır ve her API isteğine eklenir. Form gönderimlerinde token otomatik olarak yenilenir.
 
