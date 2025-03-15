@@ -191,7 +191,7 @@ Veri doğrulama kuralları ile:
     useFormData: true,         // Form verilerini FormData olarak göndermeye zorlar. (varsayılan true'dur. false yapılırsa JSON formatında gönderir.)
     // Axios ayarları da buradan yapılabilir. (headers, timeout, etc.)
     disableNotifications: false, // True yapılırsa tüm bildirimleri devre dışı bırakır.(sweetalert ve console)
-    allowApiMessages: true, // API yanıtında gelen başarı mesajların görüntülenmesini sağlar. (varsayılan true'dur.)
+    allowApiMessages: true, // API yanıtında gelen mesajların görüntülenmesini sağlar. (varsayılan true'dur.)
     validation: true,          // Validasyon kontrolü
     validationOptions: {
       showErrors: true,         // Hata mesajlarını gösterir
@@ -235,10 +235,14 @@ Veri doğrulama kuralları ile:
         console.error("Hata!", error);
       },
       success: {
+        timer: 2000, // Başarı durumunda bildirim süresi
+        showConfirmButton: false, // Başarı durumunda bildirim butonu gösterimi
         redirect: '/path',     // Yönlendirme URL'si
         message: 'Başarılı!',  // Başarı mesajı
       },
       errors: {
+        timer: 2000, // Hata durumunda bildirim süresi
+        showConfirmButton: false, // Hata durumunda bildirim butonu gösterimi
         message: 'Bir hata oluştu',
         redirect: '/path',
         400: { message: 'Hata mesajı', redirect: '/path' }
@@ -261,7 +265,7 @@ Veri doğrulama kuralları ile:
     preventRedirect: true,     // Otomatik yönlendirmeyi engeller
     tokenName: 'token', // tokenin adı (localStorage'da kullanılır)
     tokenKey: 'token', // tokenin key'i (doğrudan header'da kullanılır)
-    allowApiMessages: true, // API yanıtında gelen başarı mesajların görüntülenmesini sağlar. (varsayılan true'dur.)
+    allowApiMessages: true, // API yanıtında gelen mesajların görüntülenmesini sağlar. (varsayılan true'dur.)
     clearToken: true, // token temizleme (tokenName varsa localStorage'da silinir)
     errors: {
       redirect: '/login', 
@@ -995,8 +999,18 @@ Global hata yönetimi, API isteklerinde otomatik olarak uygulanır:
       - `transform`: Veriyi işlemek için dönüştürme fonksiyonu
       - `callback`: Veri atandıktan sonra çalışacak özel fonksiyon
     - `*`: Tüm form alanlarını otomatik eşleştirme
+  
 - **allowApiMessages parametresi:**  
   API yanıtında gelen mesajların görüntülenmesini sağlar. (varsayılan true'dur.)
+
+- **success**
+  - `message`: Başarı mesajı
+  - `timer`: Başarı mesajın görüntülenme süresi
+  - `showConfirmButton`: Başarı mesajının onay butonu gösterilip gösterilmeyeceği
+- **errors**
+  - `message`: Hata mesajı
+  - `timer`: Hata mesajının görüntülenme süresi
+  - `showConfirmButton`: Hata mesajının onay butonu gösterilip gösterilmeyeceği
   
 ## 🔍 Örnekler
 
@@ -1043,6 +1057,8 @@ import { ApiService } from 'api-form-integrator';
 const customApiConfig = {
   // Hatalar için özel yapılandırma:
   errors: {
+    timer: 2000, // Hata durumunda bildirim süresi
+    showConfirmButton: false, // Hata durumunda bildirim butonu gösterimi
     401: {
       redirect: '/login',
       message: '', // Boş mesaj tanımlanarak, SweetAlert ile hata bildirimi engellenir.
@@ -1104,7 +1120,7 @@ hızlı konfig ayarlarını (quick config) merge edip dinamik olarak form sını
      validation: true,
      preventRedirect: true,
      sweetalert2: true,
-     allowApiMessages: false, // API yanıtında gelen başarı mesajların görüntülenmesini devre dışı bırakır.
+     allowApiMessages: false, // API yanıtında gelen mesajların görüntülenmesini devre dışı bırakır.
      disableNotifications: true, // True yapılırsa tüm bildirimleri devre dışı bırakır.(sweetalert ve console)
       // ShowConfirm ayarları - yeni eklenen
      showConfirm: { // Kullanıcıdan onay ister.
@@ -1139,12 +1155,16 @@ hızlı konfig ayarlarını (quick config) merge edip dinamik olarak form sını
         onSuccess: (response) => { console.log("Giriş başarılı!", response); }, // Başarılı isteklerde çalışacak fonksiyon
         onError: (error) => { console.error("Giriş hatası", error); }, // Hata durumunda çalışacak fonksiyon
         success: {
+            timer: 2000, // Başarı durumunda bildirim süresi
+            showConfirmButton: false, // Başarı durumunda bildirim butonu gösterimi
             redirect: '/dashboard', // Yönlendirme
             message: 'Giriş başarılı!' // Mesaj
         },
         errors: {
-          redirect: '/login',
-          message: 'Bir hata oluştu',
+            timer: 2000, // Hata durumunda bildirim süresi
+            showConfirmButton: false, // Hata durumunda bildirim butonu gösterimi
+            redirect: '/login',
+            message: 'Bir hata oluştu',
             401: { message: 'Yetkisiz işlem' } // Hata durumunda çalışacak durum kodu
         }
      }

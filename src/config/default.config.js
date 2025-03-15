@@ -120,7 +120,7 @@ export const APP_CONFIG = {
 
     UI: {
         notifications: {
-            position: 'top-end',
+            position: 'center',
             timer: 2000,
             showConfirmButton: false
         },

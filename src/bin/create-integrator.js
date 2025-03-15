@@ -339,11 +339,15 @@ export const integratorConfig = {
         // onError callback desteği: API hata döndürdüğünde çalışır.
         onError: (error) => { console.log(error); return true }, // false döndürürse default hata işlemleri çalışmaz.
         success: {
+          timer: 2000, // Başarı durumunda bildirim süresi
+          showConfirmButton: false, // Başarı durumunda bildirim butonu gösterimi
           preventRedirect: false, // Başarı durumunda yönlendirme engelleme
           redirect: '/dashboard', // Yönlendirme yapılacak sayfa
           message: 'Giriş başarılı!', // Başarı mesajı
         },
         errors: {
+          timer: 2000, // Hata durumunda bildirim süresi
+          showConfirmButton: false, // Hata durumunda bildirim butonu gösterimi
           preventRedirect: false, // Hata durumunda yönlendirme engelleme
           // redirect: '/login',
           message: 'Bir hata oluştu',     
@@ -382,6 +386,8 @@ export const integratorConfig = {
     // Örnek: {"data.token": "1234567890"} şeklinde bir yanıt aldığınızda tokenName değerini "data.token" olarak giriniz.
     // tokenKey değeri girildiğinde, token değeri header'da Authorization: Bearer tokenKey değeri şeklinde saklanır.
     errors: { // Hata durumları
+        timer: 2000, // Hata durumunda bildirim süresi
+        showConfirmButton: false, // Hata durumunda bildirim butonu gösterimi
         preventRedirect: false, // Hata durumunda yönlendirme engelleme
         // redirect: '/', // Hata durumunda yönlendirme
         message: 'Bir hata oluştu', // Hata durumunda mesaj
@@ -394,7 +400,9 @@ export const integratorConfig = {
         }
     },
     success: {
-         preventRedirect: false, // Başarı durumunda yönlendirme engelleme
+        timer: 2000, // Başarı durumunda bildirim süresi
+        showConfirmButton: false, // Başarı durumunda bildirim butonu gösterimi
+        preventRedirect: false, // Başarı durumunda yönlendirme engelleme
       // redirect: '/', // Başarı durumunda yönlendirme
          message: 'İşlem başarılı!' // Başarı durumunda mesaj
     },

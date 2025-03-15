@@ -132,12 +132,12 @@ export default class ApiService {
             // Güvenli erişim için optional chaining kullanıyoruz.
             // Eğer response.data.message tanımlı ise onu, değilse response.config.success?.message kullanılır.
 
-            const successMessage = 
-            (response.config.allowApiMessages ?? this.apiConfig.allowApiMessages ?? true) && response.data.message
-                ? response.data.message
-                : response.config.actions?.success?.message ??
-                this.apiConfig.success?.message ??
-                "İstek başarılı bir şekilde gerçekleştirildi.";
+            const successMessage =
+                (response.config.allowApiMessages ?? this.apiConfig.allowApiMessages ?? true) && response.data.message
+                    ? response.data.message
+                    : response.config.actions?.success?.message ??
+                    this.apiConfig.success?.message ??
+                    "İstek başarılı bir şekilde gerçekleştirildi.";
 
             const disableNotifications = response.config.disableNotifications ?? this.apiConfig.disableNotifications ?? false;
 
@@ -145,7 +145,7 @@ export default class ApiService {
                 if ((response.config.sweetalert2 ?? this.apiConfig.sweetalert2 ?? true) === false) {
                     console.log(successMessage);
                 } else {
-                    this.showSuccess(successMessage);
+                    this.showSuccess(successMessage, response.config);
                 }
             }
 
@@ -195,10 +195,14 @@ export default class ApiService {
             }
 
             // Konfigürasyonda tanımlı hata mesajı varsa onu kullanıyoruz.
-            const errorMessage = requestConfig.actions?.errors?.[status]?.message ??
-                requestConfig.actions?.errors?.message ??
-                errorConfig?.message ??
-                this.apiConfig.errors?.message;
+            const errorMessage =
+                // İlk olarak API'den gelen hata mesajını kontrol et
+                (requestConfig.allowApiMessages ?? this.apiConfig.allowApiMessages ?? true) && data?.message
+                    ? data.message
+                    : requestConfig.actions?.errors?.[status]?.message ??
+                    requestConfig.actions?.errors?.message ??
+                    errorConfig?.message ??
+                    this.apiConfig.errors?.message;
             const errorStatus = error.response?.status;
             const disableNotifications = requestConfig.disableNotifications ?? this.apiConfig.disableNotifications ?? false;
             // Eğer sweetalert2 kullanılmıyorsa konsola loglama yapılıyor; aksi halde uyarı gösteriliyor.
@@ -251,7 +255,9 @@ export default class ApiService {
                         icon: 'error',
                         title: errorStatus,
                         text: errorMessage,
-                        ...APP_CONFIG.UI?.notifications ?? {}
+                        ...APP_CONFIG.UI?.notifications ?? {},
+                        timer: requestConfig.errors?.timer ?? this.apiConfig.errors?.timer ?? APP_CONFIG.UI?.notifications?.timer ?? 2000,
+                        showConfirmButton: requestConfig.errors?.showConfirmButton ?? this.apiConfig.errors?.showConfirmButton ?? APP_CONFIG.UI?.notifications?.showConfirmButton ?? false,
                     });
                 } else {
                     switch (status) {
@@ -355,13 +361,13 @@ export default class ApiService {
         return true;
     }
 
-    showSuccess(message) {
+    showSuccess(message, requestConfig = {}) {
         Swal.fire({
             icon: 'success',
             title: 'Başarılı!',
             text: message,
-            timer: 2000,
-            showConfirmButton: false
+            timer: requestConfig.success?.timer ?? this.apiConfig.success?.timer ?? APP_CONFIG.UI?.notifications?.timer ?? 2000,
+            showConfirmButton: requestConfig.success?.showConfirmButton ?? this.apiConfig.success?.showConfirmButton ?? APP_CONFIG.UI?.notifications?.showConfirmButton ?? false
         });
     }
 
