@@ -739,8 +739,11 @@ class BaseForm {
     }
 
     async validateRule(rule, value, fieldName) {
-        // Boş değer kontrolü
-        if (value === '' || value === null || value === undefined) {
+        // Boş değer kontrolü - hem normal input hem dosya input için
+        if (value === '' || value === null || value === undefined ||
+            (this.inputs[fieldName]?.type === 'file' &&
+                (!this.inputs[fieldName].files || this.inputs[fieldName].files.length === 0))) {
+
             if (rule.type === 'nullable') return true;
             if (this.rules[fieldName] && this.rules[fieldName].some(r => r.type === 'nullable')) return true;
             if (rule.type === 'required') return false;
@@ -749,6 +752,21 @@ class BaseForm {
 
         switch (rule.type) {
             case 'required':
+                // Dosya input kontrolü
+                if (this.inputs[fieldName]?.type === 'file') {
+                    console.log(`Dosya doğrulama: ${fieldName}`, {
+                        files: this.inputs[fieldName].files,
+                        filesLength: this.inputs[fieldName].files?.length,
+                        value: value
+                    });
+                    return this.inputs[fieldName].files && this.inputs[fieldName].files.length > 0;
+                }
+                // Normal değerler için uzunluk kontrolü
+                console.log(`Değer doğrulama: ${fieldName}`, {
+                    value: value,
+                    length: value.length,
+                    type: typeof value
+                });
                 return value.length > 0;
             case 'string':
                 // String tipinde olup olmadığını kontrol et
