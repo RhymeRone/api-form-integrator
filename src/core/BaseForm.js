@@ -865,7 +865,9 @@ class BaseForm {
 
             case 'url':
                 try {
-                    new URL(value.startsWith('http') ? value : `http://${value}`);
+                    // HTTP veya HTTPS ile başlıyorsa doğrudan kullan, yoksa http:// ekle
+                    const urlString = value.startsWith('http://') || value.startsWith('https://') ? value : `https://${value}`;
+                    new URL(urlString);
                     return true;
                 } catch (e) {
                     return false;
