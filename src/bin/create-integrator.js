@@ -375,6 +375,10 @@ export const integratorConfig = {
        : process.env.CSRF_TOKEN // CSRF token'ının otomatik algılanması
     },
     timeout: 30000, // İstek zaman aşımı (ms)
+    axios: {
+      withCredentials: false, // çapraz kökenli isteklerde kimlik bilgilerini gönderme özelliği
+      // diğer axios yapılandırmalarını buraya ekleyebilirsiniz.
+    },
     sweetalert2: true, // Sweetalert2 kullanımı
     disableNotifications: false, // True yapılırsa tüm bildirimleri devre dışı bırakır.(sweetalert ve console)
     preventRedirect: false, // Yönlendirme engelleme

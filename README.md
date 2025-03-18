@@ -260,6 +260,10 @@ Veri doğrulama kuralları ile:
       'Accept': 'application/json'
     },
     timeout: 30000,           // İstek zaman aşımı (ms)
+    axios: {
+      withCredentials: true, // çapraz kökenli isteklerde kimlik bilgilerini gönderme özelliği
+      // diğer axios yapılandırmalarını buraya ekleyebilirsiniz.
+    },
     sweetalert2: true,        // SweetAlert2 kullanımı
     disableNotifications: false, // True yapılırsa tüm bildirimleri devre dışı bırakır.(sweetalert ve console)
     preventRedirect: true,     // Otomatik yönlendirmeyi engeller
@@ -1135,6 +1139,9 @@ Global hata yönetimi, API isteklerinde otomatik olarak uygulanır:
   - `timer`: Hata mesajının görüntülenme süresi
   - `showConfirmButton`: Hata mesajının onay butonu gösterilip gösterilmeyeceği
   
+- **axios**
+  Axios yapılandırmasının özel ayarlarını belirtir. Özel yapılandırmalarını buraya ekleyebilirsiniz.
+  
 ## 🔍 Örnekler
 
 ### Doğrudan API Çağrısı Örneği
@@ -1197,6 +1204,10 @@ const customApiConfig = {
     'X-Custom-Header': 'custom-value'
   },
   timeout: 60000,
+  axios: {
+    withCredentials: true, // çapraz kökenli isteklerde kimlik bilgilerini gönderme özelliği
+    // diğer axios yapılandırmalarını buraya ekleyebilirsiniz.
+  },
   disableNotifications: false, // True yapılırsa tüm bildirimleri devre dışı bırakır.(sweetalert ve console)
    // ShowConfirm ayarları - yeni eklenen
   showConfirm: {

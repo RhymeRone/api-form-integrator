@@ -14,7 +14,8 @@ export default class ApiService {
         this.axios = axios.create({
             baseURL: this.apiConfig.baseURL,
             headers: this.apiConfig.headers,
-            timeout: this.apiConfig.timeout
+            timeout: this.apiConfig.timeout,
+            ...this.apiConfig.axios || {} // Tüm özel axios yapılandırmalarını otomatik uygula
         });
 
         this.setupInterceptors();
