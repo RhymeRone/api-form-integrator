@@ -153,11 +153,13 @@ export default class ApiService {
             let preventRedirect = response.config.actions?.success?.preventRedirect ?? response.config.preventRedirect
                 ?? this.apiConfig.actions?.success?.preventRedirect ?? this.apiConfig.preventRedirect ?? false;
             let redirect = response.config.actions?.success?.redirect ?? this.apiConfig.success?.redirect ?? false;
+            let redirectTimer = response.config.actions?.success?.redirectTimer ?? this.apiConfig.success?.redirectTimer ??
+                APP_CONFIG.UI?.notifications?.timer ?? 2000;
             // Eğer başarı durumunda yönlendirme (redirect) tanımlıysa ve istek redirect'i engellenmemişse yönlendiriyoruz.
             if (redirect && !preventRedirect) {
                 setTimeout(() => {
                     window.location.href = redirect;
-                }, APP_CONFIG.UI?.notifications?.timer ?? 2000);
+                }, redirectTimer);
             }
         }
 
@@ -291,12 +293,15 @@ export default class ApiService {
                 this.apiConfig.actions?.errors?.preventRedirect ?? this.apiConfig.preventRedirect ?? false;
             let redirect = requestConfig.actions?.errors?.[status]?.redirect ?? requestConfig.actions?.errors?.redirect
                 ?? this.apiConfig.errors?.[status]?.redirect ?? this.apiConfig.errors?.redirect ?? false;
+            let redirectTimer = requestConfig.actions?.errors?.[status]?.redirectTimer ?? requestConfig.actions?.errors?.redirectTimer
+            ?? this.apiConfig.errors?.[status]?.redirectTimer ?? this.apiConfig.errors?.redirectTimer ??
+                APP_CONFIG.UI?.notifications?.timer ?? 2000;
 
             // Eğer hata durumunda yönlendirme (redirect) tanımlıysa ve istek redirect'i engellenmemişse yönlendiriyoruz.
             if (redirect && !preventRedirect) {
                 setTimeout(() => {
                     window.location.href = redirect;
-                }, APP_CONFIG.UI?.notifications?.timer ?? 2000);
+                }, redirectTimer);
             }
         }
 

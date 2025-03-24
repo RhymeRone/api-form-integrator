@@ -238,6 +238,7 @@ Veri doğrulama kuralları ile:
         timer: 2000, // Başarı durumunda bildirim süresi
         showConfirmButton: false, // Başarı durumunda bildirim butonu gösterimi
         redirect: '/path',     // Yönlendirme URL'si
+        redirectTimer: 2000, // Yönlendirme süresi
         message: 'Başarılı!',  // Başarı mesajı
       },
       errors: {
@@ -245,6 +246,7 @@ Veri doğrulama kuralları ile:
         showConfirmButton: false, // Hata durumunda bildirim butonu gösterimi
         message: 'Bir hata oluştu',
         redirect: '/path',
+        redirectTimer: 2000, // Yönlendirme süresi
         400: { message: 'Hata mesajı', redirect: '/path' }
       }
     }
@@ -273,7 +275,7 @@ Veri doğrulama kuralları ile:
     clearToken: true, // token temizleme (tokenName varsa localStorage'da silinir)
     errors: {
       redirect: '/login', 
-      401: { message: 'Yetkisiz işlem', redirect: '/login' },
+      401: { message: 'Yetkisiz işlem', redirect: '/login', redirectTimer: 2000 },
       500: { message: 'Sistem hatası oluştu' }
     },
     success: {
@@ -1058,7 +1060,7 @@ Global hata yönetimi, API isteklerinde otomatik olarak uygulanır:
 ```javascript
   actions: {
     errors: {
-      401: { message: 'Oturum süreniz doldu', redirect: '/login' },
+      401: { message: 'Oturum süreniz doldu', redirect: '/login', redirectTimer: 2000 },
       422: { message: 'Validasyon hatası' }
     }
   }
@@ -1141,6 +1143,9 @@ Global hata yönetimi, API isteklerinde otomatik olarak uygulanır:
   
 - **axios**
   Axios yapılandırmasının özel ayarlarını belirtir. Özel yapılandırmalarını buraya ekleyebilirsiniz.
+
+- **redirectTimer**
+  - `timer`: Yönlendirme süresi (varsayılan 2000ms)
   
 ## 🔍 Örnekler
 
@@ -1292,6 +1297,7 @@ hızlı konfig ayarlarını (quick config) merge edip dinamik olarak form sını
             timer: 2000, // Başarı durumunda bildirim süresi
             showConfirmButton: false, // Başarı durumunda bildirim butonu gösterimi
             redirect: '/dashboard', // Yönlendirme
+            redirectTimer: 2000, // Yönlendirme süresi
             message: 'Giriş başarılı!' // Mesaj
         },
         errors: {

@@ -343,6 +343,7 @@ export const integratorConfig = {
           showConfirmButton: false, // Başarı durumunda bildirim butonu gösterimi
           preventRedirect: false, // Başarı durumunda yönlendirme engelleme
           redirect: '/dashboard', // Yönlendirme yapılacak sayfa
+          redirectTimer: 2000, // Yönlendirme süresi
           message: 'Giriş başarılı!', // Başarı mesajı
         },
         errors: {
@@ -350,9 +351,11 @@ export const integratorConfig = {
           showConfirmButton: false, // Hata durumunda bildirim butonu gösterimi
           preventRedirect: false, // Hata durumunda yönlendirme engelleme
           // redirect: '/login',
+          redirectTimer: 2000, // Yönlendirme süresi
           message: 'Bir hata oluştu',     
           400: {
             redirect: '/dashboard',
+            redirectTimer: 2000, // Yönlendirme süresi
             message: 'Zaten giriş yapılmış', // 400 hatası için mesaj
           },
           401: {
@@ -394,9 +397,11 @@ export const integratorConfig = {
         showConfirmButton: false, // Hata durumunda bildirim butonu gösterimi
         preventRedirect: false, // Hata durumunda yönlendirme engelleme
         // redirect: '/', // Hata durumunda yönlendirme
+        redirectTimer: 2000, // Yönlendirme süresi
         message: 'Bir hata oluştu', // Hata durumunda mesaj
         401: {
            redirect: '/login',
+           redirectTimer: 2000, // Yönlendirme süresi
            message: 'Yetkisiz erişim',
         },
         500: {
@@ -408,6 +413,7 @@ export const integratorConfig = {
         showConfirmButton: false, // Başarı durumunda bildirim butonu gösterimi
         preventRedirect: false, // Başarı durumunda yönlendirme engelleme
       // redirect: '/', // Başarı durumunda yönlendirme
+        redirectTimer: 2000, // Yönlendirme süresi
          message: 'İşlem başarılı!' // Başarı durumunda mesaj
     },
      // ShowConfirm ayarları - yeni eklenen
