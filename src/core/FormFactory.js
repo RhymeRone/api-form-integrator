@@ -147,9 +147,19 @@ export default class FormFactory {
                 // onSubmit callback
                 if (this.config.actions?.onSubmit && typeof this.config.actions.onSubmit === 'function') {
                     try {
-                        this.config.actions.onSubmit(formData, this.config);
+                        // onSubmit fonksiyonunun tamamlanmasını bekle
+                        const shouldContinue = await this.config.actions.onSubmit(formData, this.config) ?? true;
+
+                        // Eğer fonksiyon false döndürürse form gönderimini durdur
+                        if (shouldContinue === false) {
+                            return false;
+                        }
+
+                        // ÖNEMLİ: Form verisini yeniden oluştur, çünkü onSubmit içinde değişmiş olabilir
+                        formData = this.getFormData(this.config.useFormData ?? true);
                     } catch (error) {
                         console.error('onSubmit hatası:', error);
+                        return false; // Hata durumunda formu gönderme
                     }
                 }
 
